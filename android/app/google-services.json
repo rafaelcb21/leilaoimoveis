@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "202819232504",
+    "firebase_url": "https://leilaoimoveis-199101.firebaseio.com",
+    "project_id": "leilaoimoveis-199101",
+    "storage_bucket": "leilaoimoveis-199101.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:202819232504:android:7d77d1e44d716b13",
+        "android_client_info": {
+          "package_name": "com.example.leilaoimoveis"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "202819232504-r9v0fdl34oadvo0jlccsbou3jt3j501e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.leilaoimoveis",
+            "certificate_hash": "3e9c7fd662f88d6c5f858668d9b88841bc99d9f2"
+          }
+        },
+        {
+          "client_id": "202819232504-uc6efhttrdr27n9gce52k73418nsojgc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHT_02b92dSXQdKfJexoda4t_eA9uNRKQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "202819232504-uc6efhttrdr27n9gce52k73418nsojgc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
