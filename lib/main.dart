@@ -42,6 +42,12 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   _onEntryAdded(Event event) {
     setState(() {
       leiloes.add(new Leiloes.fromSnapshot(event.snapshot));
+      for(var i in leiloes) {
+        print(i.leilao);
+      }
+      print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
+      
+      
     });
   }
 
@@ -63,46 +69,49 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
 
 class Leiloes {
   String key;
-  String id;
-  double latitude;
-  String num_do_bem;
-  double longitude;
-  double vlr_de_avaliacao;
-  String descricao;
-  String tipo;
-  double vlr_de_venda;
-  String endereco;
-  String situacao;
-  String leilao;
-  String bairro;
+  List leilao;
+  //String id;
+  //double latitude;
+  //String num_do_bem;
+  //double longitude;
+  //double vlr_de_avaliacao;
+  //String descricao;
+  //String tipo;
+  //double vlr_de_venda;
+  //String endereco;
+  //String situacao;
+  //String leilao;
+  //String bairro;
 
   Leiloes(
-    this.id,
-    this.latitude,
-    this.num_do_bem,
-    this.longitude,
-    this.vlr_de_avaliacao,
-    this.descricao,
-    this.tipo,
-    this.vlr_de_venda,
-    this.endereco,
-    this.situacao,
-    this.leilao,
-    this.bairro
+    this.leilao
+    //this.id,
+    //this.latitude,
+    //this.num_do_bem,
+    //this.longitude,
+    //this.vlr_de_avaliacao,
+    //this.descricao,
+    //this.tipo,
+    //this.vlr_de_venda,
+    //this.endereco,
+    //this.situacao,
+    //this.leilao,
+    //this.bairro
   );
 
   Leiloes.fromSnapshot(DataSnapshot snapshot)
     : key = snapshot.key,
-      id = snapshot.value["id"],
-      latitude = snapshot.value["latitude"].toDouble(),
-      num_do_bem = snapshot.value["num_do_bem"],
-      longitude = snapshot.value["longitude"].toDouble(),
-      vlr_de_avaliacao = snapshot.value["vlr_de_avaliacao"].toDouble(),
-      descricao = snapshot.value["descricao"],
-      tipo = snapshot.value["tipo"],
-      vlr_de_venda = snapshot.value["vlr_de_venda"].toDouble(),
-      endereco = snapshot.value["endereco"],
-      situacao = snapshot.value["situacao"],
-      leilao = snapshot.value["leilao"],
-      bairro = snapshot.value["bairro"];
+      leilao = snapshot.value;
+      //id = snapshot.value["id"],
+      //latitude = snapshot.value["latitude"].toDouble(),
+      //num_do_bem = snapshot.value["num_do_bem"],
+      //longitude = snapshot.value["longitude"].toDouble(),
+      //vlr_de_avaliacao = snapshot.value["vlr_de_avaliacao"].toDouble(),
+      //descricao = snapshot.value["descricao"],
+      //tipo = snapshot.value["tipo"],
+      //vlr_de_venda = snapshot.value["vlr_de_venda"].toDouble(),
+      //endereco = snapshot.value["endereco"],
+      //situacao = snapshot.value["situacao"],
+      //leilao = snapshot.value["leilao"],
+      //bairro = snapshot.value["bairro"];
 }
