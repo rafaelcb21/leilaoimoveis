@@ -4,6 +4,8 @@ import 'package:map_view/map_view.dart';
 import 'dart:async';
 import 'localizacao.dart';
 import 'dbfirebase.dart';
+import 'textpicker.dart';
+//import 'palette.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -64,9 +66,73 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   var staticMapProvider = new StaticMapProvider(apiKey);
   bool mapaImovel = false;
 
+  String valueTextTipoLeilao = " ";
+  String valueTextProposta = "Sim";
+  String valueTextTipo = " ";
+  String valueValorMinimoVenda = " ";
+  String valueValorMaximoAvaliacao = " ";
+  String valueOcupadoDesocupado = " ";
+  String valueEstado = " ";
+  String valueCidade = " ";
+
+  List listaTipoLeilao = [];
+  List listaProposta = [];
+  List listaTipo = [];
+  List listaValorMinimoVenda = [];
+  List listaValorMaximoAvaliacao = [];
+  List listaOcupadoDesocupado = [];
+  List listaEstado = [];
+  List listaCidade = [];
+
+  List leilaoTipo = [
+    ['Leilão', Colors.purple],
+    ['Licitacao Aberta', Colors.purpleAccent],
+    ['Licitacao Fechada', Colors.deepPurple],
+    ['Venda Direta', Colors.indigo]
+  ];
+
+  List proposta = [
+    ['Sim', Colors.greenAccent],
+    ['Não', Colors.redAccent]
+  ];
+
+  List tipoImoveis = [
+    ['Apartamento', Colors.lightGreen],
+    ['Casa', Colors.lightBlue],
+    ['Sobrado', Colors.teal],
+    ['Terreno', Colors.orange]
+  ];
+
+  List valorMinimoVenda = ['R\$ 50.000,00', 'R\$ 100.000,00'];
+  List valorMaximoAvaliacao = ['R\$ 50.000,00', 'R\$ 100.000,00'];
+
+  List ocupadoDesocupado = [
+    ['Desocupado', Colors.greenAccent],
+    ['Ocupado', Colors.redAccent]
+  ];
+
+  List estado = ['SP', 'RJ', 'MA'];
+  List cidade = ['São Paulo', 'Rio de Janeiro', 'Ceará'];
+
+  Map formSubmit = {
+    'tipoleilao': ' ',
+    'proposta': ' ',
+    'tipo': ' ',
+    'valor_minimo_venda': ' ',
+    'valor_maximo_avaliacao': ' ',
+    'ocupado_desocupado': ' ',
+    'estado': ' ',
+    'cidade': ' ',
+  };
+
+  //List cores = [];
+  //Palette listaCores = new Palette();
+  
   @override
   initState() async {
     super.initState();
+
+    //this.cores = listaCores.cores;
     
     FirebaseDB.getVersion().then((dataVersion) {
 
@@ -116,14 +182,275 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     });
   }
 
+  void showTipoLeilaoDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueTextTipoLeilao = value.toString();
+        });
+      }
+    });
+  }
+
+  void showPropostaDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueTextProposta = value.toString();
+        });
+      }
+    });
+  }
+
+  void showTipoDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueTextTipo = value.toString();
+        });
+      }
+    });
+  }
+
+  void showVMVendaDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueValorMinimoVenda = value.toString();
+        });
+      }
+    });
+  }
+
+  void showVMAvaliacaoDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueValorMaximoAvaliacao = value.toString();
+        });
+      }
+    });
+  }
+
+  void showOcupadoDesocupadoDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueOcupadoDesocupado = value.toString();
+        });
+      }
+    });
+  }
+
+  void showEstadoDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueEstado = value.toString();
+        });
+      }
+    });
+  }
+
+  void showCidadeDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          this.valueCidade = value.toString();
+        });
+      }
+    });
+  }
+
+  List<Widget> buildListaTipoLeilao(list) {
+    this.listaTipoLeilao = [];
+    for(var item in list) {
+      this.listaTipoLeilao.add(
+        new DialogItem(
+          icon: Icons.brightness_1,            
+          text: item[0],
+          color: item[1],
+          onPressed: () {
+            this.formSubmit['tipoleilao'] = item[0];
+            Navigator.pop(context, item[0]);
+          }
+        ),
+      );
+    }
+    return this.listaTipoLeilao;
+  }
+
+  List<Widget> buildListaPropostas(list) {
+    this.listaProposta = [];
+    for(var item in list) {
+      this.listaProposta.add(
+        new DialogItem(
+          icon: Icons.brightness_1,            
+          text: item[0],
+          color: item[1],
+          onPressed: () {
+            this.formSubmit['proposta'] = item[0];
+            Navigator.pop(context, item[0]);
+          }
+        ),
+      );
+    }
+    return this.listaProposta;
+  }
+
+  List<Widget> buildListaTipo(list) {
+    this.listaTipo = [];
+    for(var item in list) {
+      this.listaTipo.add(
+        new DialogItem(
+          icon: Icons.brightness_1,            
+          text: item[0],
+          color: item[1],
+          onPressed: () {
+            this.formSubmit['tipo'] = item[0];
+            Navigator.pop(context, item[0]);
+          }
+        ),
+      );
+    }
+    return this.listaTipo;
+  }
+
+  List<Widget> buildListaOcupadoDesocupado(list) {
+    this.listaOcupadoDesocupado = [];
+    for(var item in list) {
+      this.listaOcupadoDesocupado.add(
+        new DialogItem(
+          icon: Icons.brightness_1,            
+          text: item[0],
+          color: item[1],
+          onPressed: () {
+            this.formSubmit['ocupado_desocupado'] = item[0];
+            Navigator.pop(context, item[0]);
+          }
+        ),
+      );
+    }
+    return this.listaOcupadoDesocupado;
+  }
+
+    
+
   @override
   Widget build(BuildContext context) {
+    final TextStyle valueStyle = Theme.of(context).textTheme.title;
+
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('Leilões de Imóveis da Caixa'),
+        backgroundColor: Colors.purple,
       ),
       body: new ListView(
         children: <Widget>[
+          new Container(
+            margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Tipo de Leilão',
+              valueText: this.valueTextTipoLeilao,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showTipoLeilaoDialog<String>(
+                  context: context,
+                  child: new SimpleDialog(
+                    title: const Text('Tipos de Leilões'),
+                    children: buildListaTipoLeilao(this.leilaoTipo)
+                  )
+                );
+              },
+                onPressed2: () {
+                setState(() {
+                  this.valueTextTipoLeilao = ' ';
+                  this.formSubmit['tipoleilao'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Aberto para proposta',
+              valueText: this.valueTextProposta,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showPropostaDialog<String>(
+                  context: context,
+                  child: new SimpleDialog(
+                    title: const Text('Aberto para proposta'),
+                    children: buildListaPropostas(this.proposta)
+                  )
+                );
+              },
+                onPressed2: () {
+                setState(() {
+                  this.valueTextProposta = ' ';
+                  this.formSubmit['proposta'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Tipo de Imóvel',
+              valueText: this.valueTextTipo,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showTipoDialog<String>(
+                  context: context,
+                  child: new SimpleDialog(
+                    title: const Text('Tipos de Imóveis'),
+                    children: buildListaTipo(this.tipoImoveis)
+                  )
+                );
+              },
+                onPressed2: () {
+                setState(() {
+                  this.valueTextTipo = ' ';
+                  this.formSubmit['tipo'] = ' ';
+                });
+              }
+            ),
+          ),
+          
           new Card(
             child: new Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,5 +587,175 @@ class CompositeSubscription {
 
   List<StreamSubscription> toList() {
     return this._subscriptions.toList();
+  }
+}
+
+class InputDropdown3 extends StatelessWidget {
+  const InputDropdown3({
+    Key key,
+    this.child,
+    this.labelText,
+    this.valueText,
+    this.valueStyle,
+    this.onPressed,
+    this.onPressed2 }) : super(key: key);
+ 
+  final String labelText;
+  final String valueText;
+  final TextStyle valueStyle;
+  final VoidCallback onPressed;
+  final VoidCallback onPressed2;
+  final Widget child;
+ 
+  @override
+  Widget build(BuildContext context) {
+    return new InkWell(
+      onTap: onPressed,
+      child: new Stack(
+        children: <Widget>[
+          new InputDecorator(
+            decoration: new InputDecoration(
+              labelText: labelText,
+              isDense: true,
+            ),
+            baseStyle: valueStyle,
+            child: new Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                new Text(valueText, style: valueStyle),
+              ],
+            ),
+          ),
+          valueText == " " ? new Container() :
+          new Positioned.fill(
+            child: new Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                new Container(
+                  child: new GestureDetector(
+                    onTap: onPressed2,
+                    child: new Container(
+                      margin: new EdgeInsets.only(top: 12.0),
+                      child: new Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          new Container(
+                            margin: new EdgeInsets.only(top: 16.0, bottom: 8.0, left: 8.0),
+                            child: new Icon(
+                              Icons.cancel,
+                              size: 18.0,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ],
+                      )
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      )
+    );
+  }
+}
+
+class DialogItem extends StatelessWidget {
+  DialogItem({ Key key, this.icon, this.size, this.color, this.text, this.onPressed }) : super(key: key);
+ 
+  final IconData icon;
+  double size = 36.0;
+  final Color color;
+  final String text;
+  final VoidCallback onPressed;
+ 
+  @override
+  Widget build(BuildContext context) {
+    return new SimpleDialogOption(
+      onPressed: onPressed,
+      child: new Container(
+        child: new Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            new Container(              
+              child: new Container(
+                margin: size == 16.0 ? new EdgeInsets.only(left: 7.0) : null,
+                child: new Icon(icon, size: size, color: color),
+              )                
+            ),        
+            new Padding(
+              padding: size == 16.0 ? const EdgeInsets.only(left: 17.0) : const EdgeInsets.only(left: 16.0),
+              child: new Text(text),
+            ),
+          ],
+        ),
+      )
+    );
+  }
+}
+
+typedef void MyFormCallback(String result);
+
+class MyForm extends StatefulWidget {
+  final MyFormCallback onSubmit;
+
+  MyForm({this.onSubmit});
+
+  @override
+  _MyFormState createState() => new _MyFormState();
+}
+
+class _MyFormState extends State<MyForm> {
+  String value = "Fixa";
+  int _currentValueFixo = 3;
+
+  List fixoList = ['Diária', 'Semanal', 'Quinzenal', 'Mensal', 
+                'Bimestral', 'Trimestral', 'Semestral', 'Anual'];
+
+  @override
+  Widget build(BuildContext context) {
+    return new SimpleDialog(
+      title: new Text("Valor Mínimo de Venda"),
+      children: <Widget>[
+        new Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            new TextPicker(
+              initialValue: _currentValueFixo,
+              listName: this.fixoList,
+              onChanged: (newValue) =>
+                setState(() => _currentValueFixo = newValue)
+            ),
+          ],
+        ),
+
+
+        new FlatButton(
+          onPressed: () {
+            Navigator.pop(context);
+            if(value == 'Fixa') {
+              widget.onSubmit(value + ';' + this.fixoList[_currentValueFixo]);
+            }            
+          },
+          child: new Container(
+            margin: new EdgeInsets.only(right: 10.0),
+            child: new Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                new Text(
+                  "OK",
+                  style: new TextStyle(
+                    fontSize: 16.0
+                  ),
+                ),
+              ],
+            ),
+          )
+        )
+      ],
+    );
   }
 }
