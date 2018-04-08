@@ -69,11 +69,11 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   String valueTextTipoLeilao = " ";
   String valueTextProposta = "Sim";
   String valueTextTipo = " ";
-  String valueValorMinimoVenda = " ";
-  String valueValorMaximoAvaliacao = " ";
+  String valueTextVMVenda = " ";
+  String valueTextVMAvaliacao = " ";
   String valueOcupadoDesocupado = " ";
-  String valueEstado = " ";
-  String valueCidade = " ";
+  String valueTextEstado = " ";
+  String valueTextCidade = " ";
 
   List listaTipoLeilao = [];
   List listaProposta = [];
@@ -103,8 +103,8 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     ['Terreno', Colors.orange]
   ];
 
-  List valorMinimoVenda = ['R\$ 50.000,00', 'R\$ 100.000,00'];
-  List valorMaximoAvaliacao = ['R\$ 50.000,00', 'R\$ 100.000,00'];
+  List valorMinimoVenda = ['R\$ 50.000.000,00', 'R\$ 900.000.000,00', 'R\$ 9.000.000.000,00', 'R\$ 200.000,00'];
+  List valorMaximoAvaliacao = ['R\$ 9.000.000.000,00', 'R\$ 200.000,00', 'R\$ 50.000,00', 'R\$ 100.000,00'];
 
   List ocupadoDesocupado = [
     ['Desocupado', Colors.greenAccent],
@@ -224,33 +224,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     });
   }
 
-  void showVMVendaDialog<T>({ BuildContext context, Widget child }) {
-    showDialog<T>(
-      context: context,
-      child: child,
-    )
-    .then<Null>((T value) {
-      if (value != null) {
-        setState(() {
-          this.valueValorMinimoVenda = value.toString();
-        });
-      }
-    });
-  }
-
-  void showVMAvaliacaoDialog<T>({ BuildContext context, Widget child }) {
-    showDialog<T>(
-      context: context,
-      child: child,
-    )
-    .then<Null>((T value) {
-      if (value != null) {
-        setState(() {
-          this.valueValorMaximoAvaliacao = value.toString();
-        });
-      }
-    });
-  }
 
   void showOcupadoDesocupadoDialog<T>({ BuildContext context, Widget child }) {
     showDialog<T>(
@@ -261,34 +234,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
       if (value != null) {
         setState(() {
           this.valueOcupadoDesocupado = value.toString();
-        });
-      }
-    });
-  }
-
-  void showEstadoDialog<T>({ BuildContext context, Widget child }) {
-    showDialog<T>(
-      context: context,
-      child: child,
-    )
-    .then<Null>((T value) {
-      if (value != null) {
-        setState(() {
-          this.valueEstado = value.toString();
-        });
-      }
-    });
-  }
-
-  void showCidadeDialog<T>({ BuildContext context, Widget child }) {
-    showDialog<T>(
-      context: context,
-      child: child,
-    )
-    .then<Null>((T value) {
-      if (value != null) {
-        setState(() {
-          this.valueCidade = value.toString();
         });
       }
     });
@@ -366,7 +311,25 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     return this.listaOcupadoDesocupado;
   }
 
-    
+  void onSubmit(List lista) {
+    String result = lista[0];
+    String tipoLista = lista[1];    
+    setState(() {
+      if(tipoLista == 'Valor Mínimo de Venda') {
+        this.valueTextVMVenda = result;
+        this.formSubmit['valor_minimo_venda'] = result;
+      } else if(tipoLista == 'Valor Máximo de Avaliação') {
+        this.valueTextVMAvaliacao = result;
+        this.formSubmit['valor_maximo_avaliacao'] = result;
+      } else if(tipoLista == 'Estado') {
+        this.valueTextEstado = result;
+        this.formSubmit['estado'] = result;
+      } else if(tipoLista == 'Cidade') {
+        this.valueTextCidade = result;
+        this.formSubmit['cidade'] = result;
+      } 
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -375,12 +338,12 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('Leilões de Imóveis da Caixa'),
-        backgroundColor: Colors.purple,
+        backgroundColor: new Color(0xFF1387b3),
       ),
       body: new ListView(
         children: <Widget>[
           new Container(
-            margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
               labelText: 'Tipo de Leilão',
               valueText: this.valueTextTipoLeilao,
@@ -394,7 +357,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                   )
                 );
               },
-                onPressed2: () {
+              onPressed2: () {
                 setState(() {
                   this.valueTextTipoLeilao = ' ';
                   this.formSubmit['tipoleilao'] = ' ';
@@ -404,7 +367,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           ),
 
           new Container(
-            margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
               labelText: 'Aberto para proposta',
               valueText: this.valueTextProposta,
@@ -418,7 +381,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                   )
                 );
               },
-                onPressed2: () {
+              onPressed2: () {
                 setState(() {
                   this.valueTextProposta = ' ';
                   this.formSubmit['proposta'] = ' ';
@@ -428,7 +391,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           ),
 
           new Container(
-            margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
               labelText: 'Tipo de Imóvel',
               valueText: this.valueTextTipo,
@@ -442,10 +405,118 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                   )
                 );
               },
-                onPressed2: () {
+              onPressed2: () {
                 setState(() {
                   this.valueTextTipo = ' ';
                   this.formSubmit['tipo'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Valor Mínimo de Venda',
+              valueText: this.valueTextVMVenda,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  child: new MyForm(onSubmit: onSubmit, rolamento: valorMinimoVenda, tipoLista: 'Valor Mínimo de Venda')
+                );
+              },
+              onPressed2: () {
+                setState(() {
+                  this.valueTextVMVenda = ' ';
+                  this.formSubmit['valor_minimo_venda'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Valor Máximo de Avaliação',
+              valueText: this.valueTextVMAvaliacao,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  child: new MyForm(onSubmit: onSubmit, rolamento: valorMaximoAvaliacao, tipoLista: 'Valor Máximo de Avaliação')
+                );
+              },
+              onPressed2: () {
+                setState(() {
+                  this.valueTextVMAvaliacao = ' ';
+                  this.formSubmit['valor_maximo_avaliacao'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Situação',
+              valueText: this.valueOcupadoDesocupado,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showOcupadoDesocupadoDialog<String>(
+                  context: context,
+                  child: new SimpleDialog(
+                    title: const Text('Situação'),
+                    children: buildListaOcupadoDesocupado(this.ocupadoDesocupado)
+                  )
+                );
+              },
+              onPressed2: () {
+                setState(() {
+                  this.valueOcupadoDesocupado = ' ';
+                  this.formSubmit['ocupado_desocupado'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Estado',
+              valueText: this.valueTextEstado,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  child: new MyForm(onSubmit: onSubmit, rolamento: estado, tipoLista: 'Estado')
+                );
+              },
+              onPressed2: () {
+                setState(() {
+                  this.valueTextEstado = ' ';
+                  this.formSubmit['estado'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Cidade',
+              valueText: this.valueTextCidade,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  child: new MyForm(onSubmit: onSubmit, rolamento: cidade, tipoLista: 'Cidade')
+                );
+              },
+              onPressed2: () {
+                setState(() {
+                  this.valueTextCidade = ' ';
+                  this.formSubmit['cidade'] = ' ';
                 });
               }
             ),
@@ -641,7 +712,7 @@ class InputDropdown3 extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           new Container(
-                            margin: new EdgeInsets.only(top: 16.0, bottom: 8.0, left: 8.0),
+                            margin: new EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
                             child: new Icon(
                               Icons.cancel,
                               size: 18.0,
@@ -684,8 +755,8 @@ class DialogItem extends StatelessWidget {
               child: new Container(
                 margin: size == 16.0 ? new EdgeInsets.only(left: 7.0) : null,
                 child: new Icon(icon, size: size, color: color),
-              )                
-            ),        
+              )
+            ),
             new Padding(
               padding: size == 16.0 ? const EdgeInsets.only(left: 17.0) : const EdgeInsets.only(left: 16.0),
               child: new Text(text),
@@ -697,37 +768,38 @@ class DialogItem extends StatelessWidget {
   }
 }
 
-typedef void MyFormCallback(String result);
+typedef void MyFormCallback(List result);
 
 class MyForm extends StatefulWidget {
   final MyFormCallback onSubmit;
+  List rolamento;
+  String tipoLista;
 
-  MyForm({this.onSubmit});
+  MyForm({this.onSubmit, this.rolamento, this.tipoLista});
 
   @override
-  _MyFormState createState() => new _MyFormState();
+  _MyFormState createState() => new _MyFormState(this.rolamento, this.tipoLista);
 }
 
 class _MyFormState extends State<MyForm> {
-  String value = "Fixa";
-  int _currentValueFixo = 3;
-
-  List fixoList = ['Diária', 'Semanal', 'Quinzenal', 'Mensal', 
-                'Bimestral', 'Trimestral', 'Semestral', 'Anual'];
+  _MyFormState(this.rolamento, this.tipoLista);
+  List rolamento;
+  String tipoLista;
+  int _currentValue = 3;
 
   @override
   Widget build(BuildContext context) {
     return new SimpleDialog(
-      title: new Text("Valor Mínimo de Venda"),
+      title: new Text(this.tipoLista),
       children: <Widget>[
         new Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             new TextPicker(
-              initialValue: _currentValueFixo,
-              listName: this.fixoList,
+              initialValue: _currentValue,
+              listName: this.rolamento,
               onChanged: (newValue) =>
-                setState(() => _currentValueFixo = newValue)
+                setState(() => _currentValue = newValue)
             ),
           ],
         ),
@@ -736,9 +808,7 @@ class _MyFormState extends State<MyForm> {
         new FlatButton(
           onPressed: () {
             Navigator.pop(context);
-            if(value == 'Fixa') {
-              widget.onSubmit(value + ';' + this.fixoList[_currentValueFixo]);
-            }            
+              widget.onSubmit([rolamento[_currentValue], tipoLista]);
           },
           child: new Container(
             margin: new EdgeInsets.only(right: 10.0),

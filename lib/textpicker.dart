@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 
 class TextPicker extends StatelessWidget {
   static const double DEFAULT_ITEM_EXTENT = 50.0;
-  static const double DEFUALT_LISTVIEW_WIDTH = 100.0;
+  static const double DEFUALT_LISTVIEW_WIDTH = 200.0;
 
   TextPicker({
     Key key,
