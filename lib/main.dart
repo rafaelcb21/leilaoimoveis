@@ -243,24 +243,20 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               
             }
 
+            // criando a lista de estados e o dicionario estado->cidades
             this.estado = new Collection(estados).distinct().toList();
             for(var item in this.estado) {
               this.dictEstadosCidades[item] = [];
             }
-
             for(var item in fileContent['imoveis']) {
               this.dictEstadosCidades[item['estado']].add(item['cidade']);
             }
-
             void iterateMapEntry(key, value) {
               this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
             }
-
             this.dictEstadosCidades.forEach(iterateMapEntry);
 
 
-
-            print(this.dictEstadosCidades);
 
             
             print('nao_faz_nada');
