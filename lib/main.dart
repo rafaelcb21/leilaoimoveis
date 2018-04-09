@@ -5,6 +5,11 @@ import 'dart:async';
 import 'localizacao.dart';
 import 'dbfirebase.dart';
 import 'textpicker.dart';
+import 'dart:io';
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
+import 'package:queries/collections.dart';
+
 //import 'palette.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
@@ -84,6 +89,12 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   List listaEstado = [];
   List listaCidade = [];
 
+  File jsonFile;
+  Directory dir;
+  String fileName = "db.json";
+  bool fileExists = false;
+  Map<String, List> fileContent;
+
   List leilaoTipo = [
     ['Leilão', Colors.purple],
     ['Licitacao Aberta', Colors.purpleAccent],
@@ -111,8 +122,12 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     ['Ocupado', Colors.redAccent]
   ];
 
-  List estado = ['SP', 'RJ', 'MA'];
-  List cidade = ['São Paulo', 'Rio de Janeiro', 'Ceará'];
+  //Map<String, List> estadoCidade;
+  //List estadosNaoDuplicados = [];
+  Map dictEstadosCidades = {};
+
+  List estado = [];
+  List cidade = [];
 
   Map formSubmit = {
     'tipoleilao': ' ',
@@ -125,22 +140,38 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     'cidade': ' ',
   };
 
-  //List cores = [];
-  //Palette listaCores = new Palette();
-  
+  void createFile(Map<String, List> content, Directory dir, String fileName) {
+    print("Creating file!");
+    File file = new File(dir.path + "/" + fileName);
+    file.createSync();
+    fileExists = true;
+    file.writeAsStringSync(json.encode(content));
+  }
+
+  void writeToFile(String key, List value) {
+    //print("Writing to file!");
+    Map<String, List> content = {key: value};
+    //if (fileExists) {
+    //  print("File exists");
+    //  Map<String, List> jsonFileContent = json.decode(jsonFile.readAsStringSync());
+    //  jsonFileContent.addAll(content);
+    //  jsonFile.writeAsStringSync(json.encode(jsonFileContent));
+    //} else {
+    //  print("File does not exist!");
+      createFile(content, dir, fileName);
+    //}
+    //this.setState(() => fileContent = json.decode(jsonFile.readAsStringSync()));
+    //print(fileContent);
+  }
+
   @override
   initState() async {
     super.initState();
-
-    //this.cores = listaCores.cores;
     
-    FirebaseDB.getVersion().then((dataVersion) {
-
-    });
+    //FirebaseDB.getVersion().then((dataVersion) {});
 
     FirebaseDB.getImoveis().then((dataImoveis) {
       for(var item in dataImoveis.imoveis) {
-
         this.tipo = item['tipo'];
         this.situacao = item['situacao'];
         this.vlr_de_avaliacao = item['vlr_de_avaliacao'];
@@ -180,6 +211,79 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
       this.longitude = coordenadas[3];
       }      
     });
+
+    getApplicationDocumentsDirectory().then((Directory directory) {
+      dir = directory;
+      jsonFile = new File(dir.path + "/" + fileName);
+      fileExists = jsonFile.existsSync();
+
+      if (fileExists) {
+        fileContent = json.decode(jsonFile.readAsStringSync());
+        String versionArquivo = fileContent['imoveis'][0]['versao'];
+
+        FirebaseDB.getImoveis().then((dataImoveis) {
+          String versionFirebase = dataImoveis.imoveis[0]['versao'];
+          List estados = [];
+          if(int.parse(versionArquivo) < int.parse(versionFirebase)) {
+            createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
+            print('mudar');
+          } else {
+            for(var item in fileContent['imoveis']) {
+              estados.add(item['estado']);
+              
+              //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
+              
+              //item['tipo']
+              //item['tipo_leilao']
+              //item['situacao']
+              //item['vlr_de_venda']
+              //item['vlr_de_avaliacao']
+              //item['tipo_leilao']
+              //item['situacao']
+              
+            }
+
+            this.estado = new Collection(estados).distinct().toList();
+            for(var item in this.estado) {
+              this.dictEstadosCidades[item] = [];
+            }
+
+            for(var item in fileContent['imoveis']) {
+              this.dictEstadosCidades[item['estado']].add(item['cidade']);
+            }
+
+            void iterateMapEntry(key, value) {
+              this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
+            }
+
+            this.dictEstadosCidades.forEach(iterateMapEntry);
+
+
+
+            print(this.dictEstadosCidades);
+
+            
+            print('nao_faz_nada');
+          }
+          
+          
+
+        });
+        
+
+
+        
+        //this.setState(() {
+        //  fileContent = json.decode(jsonFile.readAsStringSync());
+        //});
+      } else {
+        FirebaseDB.getImoveis().then((dataImoveis) {
+          createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
+
+        });
+      }
+    });
+
   }
 
   void showTipoLeilaoDialog<T>({ BuildContext context, Widget child }) {
@@ -508,9 +612,10 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               valueText: this.valueTextCidade,
               valueStyle: valueStyle,
               onPressed: () {
+                this.cidade = this.dictEstadosCidades[this.valueTextEstado];
                 showDialog(
                   context: context,
-                  child: new MyForm(onSubmit: onSubmit, rolamento: cidade, tipoLista: 'Cidade')
+                  child: new MyForm(onSubmit: onSubmit, rolamento: this.cidade, tipoLista: 'Cidade')
                 );
               },
               onPressed2: () {
@@ -615,10 +720,10 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
 
       this.mapaImovel = true;
 
-      print(staticMapProvider.getStaticUri(
-      new Location(this.latitude, this.longitude),
-      20, width: 900, height: 400).toString() +
-      "&markers=color:red|label:" + this.label +"|" + this.latitude.toString() + "," + this.longitude.toString());
+      //print(staticMapProvider.getStaticUri(
+      //new Location(this.latitude, this.longitude),
+      //20, width: 900, height: 400).toString() +
+      //"&markers=color:red|label:" + this.label +"|" + this.latitude.toString() + "," + this.longitude.toString());
 
     });
 

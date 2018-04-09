@@ -3,6 +3,8 @@ description: A new Flutter project.
 
 dependencies:
   map_view: "^0.0.10"
+  path_provider: "^0.4.0"
+  queries: "^0.0.15"
   flutter:
     sdk: flutter
   #firebase_analytics: "^0.3.0"

@@ -3,18 +3,18 @@ import 'package:firebase_database/firebase_database.dart';
 
 class FirebaseDB {
 
-  static Future<Versao> getVersion() async {
-    Completer<Versao> completer = new Completer<Versao>();
-    FirebaseDatabase.instance
-        .reference()
-        .child("versao")
-        .onValue
-        .listen((Event event) {
-      var todo = new Versao.fromJson(event.snapshot.key, event.snapshot.value);
-      completer.complete(todo);
-    });
-    return completer.future;
-  }
+  //static Future<Imoveis> getVersion() async {
+  //  Completer<Imoveis> completer = new Completer<Imoveis>();
+  //  FirebaseDatabase.instance
+  //      .reference()
+  //      .child("imoveis")
+  //      .onValue
+  //      .listen((Event event) {
+  //    var todo = new Imoveis.fromJson(event.snapshot.key, event.snapshot.value);
+  //    completer.complete(todo);
+  //  });
+  //  return completer.future;
+  //}
 
   static Future<Imoveis> getImoveis() async {
     Completer<Imoveis> completer = new Completer<Imoveis>();
@@ -28,26 +28,27 @@ class FirebaseDB {
     });
     return completer.future;
   }
+
 }
 
 // Models
 
-class Versao {
-  String key;
-  int version;
-
-  Versao(this.version);
-  Versao.fromSnapshot(DataSnapshot snapshot)
-  : key = snapshot.key,
-    version = snapshot.value;
-  
-  Versao.fromJson(this.key, int data) {
-    version = data;
-    if (version == null) {
-      version = 0;
-    }
-  }
-}
+//class Versao {
+//  String key;
+//  int version;
+//
+//  Versao(this.version);
+//  Versao.fromSnapshot(DataSnapshot snapshot)
+//  : key = snapshot.key,
+//    version = snapshot.value;
+//  
+//  Versao.fromJson(this.key, int data) {
+//    version = data;
+//    if (version == null) {
+//      version = 0;
+//    }
+//  }
+//}
 
 class Imoveis {
   String key;
