@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:map_view/map_view.dart';
 import 'dart:async';
@@ -49,7 +50,7 @@ class LeilaoImoveisPage extends StatefulWidget {
 class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   MapView mapView = new MapView();
   var compositeSubscription = new CompositeSubscription();
-
+  Color azul = new Color(0xFF1387b3);
   Localizacao localizacao = new Localizacao();
   double latitude = -15.794229;
   double longitude = -47.882166;
@@ -95,32 +96,19 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   bool fileExists = false;
   Map<String, List> fileContent;
 
-  List leilaoTipo = [
-    ['Leilão', Colors.purple],
-    ['Licitacao Aberta', Colors.purpleAccent],
-    ['Licitacao Fechada', Colors.deepPurple],
-    ['Venda Direta', Colors.indigo]
-  ];
+  List leilaoTipo = [];
 
   List proposta = [
     ['Sim', Colors.greenAccent],
     ['Não', Colors.redAccent]
   ];
 
-  List tipoImoveis = [
-    ['Apartamento', Colors.lightGreen],
-    ['Casa', Colors.lightBlue],
-    ['Sobrado', Colors.teal],
-    ['Terreno', Colors.orange]
-  ];
+  List tipoImoveis = [];
 
-  List valorMinimoVenda = ['R\$ 50.000.000,00', 'R\$ 900.000.000,00', 'R\$ 9.000.000.000,00', 'R\$ 200.000,00'];
-  List valorMaximoAvaliacao = ['R\$ 9.000.000.000,00', 'R\$ 200.000,00', 'R\$ 50.000,00', 'R\$ 100.000,00'];
+  List valorMinimoVenda = [];
+  List valorMaximoAvaliacao = [];
 
-  List ocupadoDesocupado = [
-    ['Desocupado', Colors.greenAccent],
-    ['Ocupado', Colors.redAccent]
-  ];
+  List ocupadoDesocupado = [];
 
   //Map<String, List> estadoCidade;
   //List estadosNaoDuplicados = [];
@@ -162,6 +150,38 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     //}
     //this.setState(() => fileContent = json.decode(jsonFile.readAsStringSync()));
     //print(fileContent);
+  }
+
+  buildList(List lista) {
+    List x = [];
+    List listaSemDuplicados = new Collection(lista).distinct().toList();
+    for(var item in listaSemDuplicados) {
+      x.add([item, azul]);
+    }
+    return x;
+  }
+
+  String numeroBrasil(List<int> numerosLista){
+    if(numerosLista.length == 0) {
+      return '0,00';
+    }
+    if(numerosLista.length == 1) {
+      return '0,0' + numerosLista[0].toString();
+    }
+   if(numerosLista.length == 2) {
+      return '0,' + numerosLista[0].toString() + numerosLista[1].toString();
+    }
+    if(numerosLista.length >= 3) {
+      List<int> inteiroLista = numerosLista.sublist(0, numerosLista.length -2);
+      List<int> decimalLista = numerosLista.sublist(numerosLista.length -2, numerosLista.length);
+      String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
+      String decimalListaString = decimalLista.map((i) => i.toString()).join('');
+ 
+      var f = new NumberFormat("#,###,###,###,###.00", "pt_BR");
+      var valor = f.format(double.parse(inteiroListaString + '.' + decimalListaString));
+      return  valor;
+ 
+    }
   }
 
   @override
@@ -224,23 +244,23 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
         FirebaseDB.getImoveis().then((dataImoveis) {
           String versionFirebase = dataImoveis.imoveis[0]['versao'];
           List estados = [];
+          List tiposImoveis = [];
+          List tipoLeilao = [];
+          List situacaoLista = [];
+          List valorVenda = [];
+          List valorAvaliacao = [];
           if(int.parse(versionArquivo) < int.parse(versionFirebase)) {
             createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
             print('mudar');
           } else {
             for(var item in fileContent['imoveis']) {
               estados.add(item['estado']);
-              
+              tipoLeilao.add(item['tipo_leilao']);
+              tiposImoveis.add(item['tipo']);
+              situacaoLista.add(item['situacao']);
+              valorVenda.add(item['vlr_de_venda']);
+              valorAvaliacao.add(item['vlr_de_avaliacao']);
               //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
-              
-              //item['tipo']
-              //item['tipo_leilao']
-              //item['situacao']
-              //item['vlr_de_venda']
-              //item['vlr_de_avaliacao']
-              //item['tipo_leilao']
-              //item['situacao']
-              
             }
 
             // criando a lista de estados e o dicionario estado->cidades
@@ -256,7 +276,58 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
             }
             this.dictEstadosCidades.forEach(iterateMapEntry);
 
+            // Cria lista de tipos de leilões
+            this.tipoImoveis = buildList(tiposImoveis);           
 
+            // Criando lista de tipos de imóveis
+            this.leilaoTipo = buildList(tipoLeilao);
+
+            // Criando a lista da situação do imóvel: Ocupado ou Desocupado
+            this.ocupadoDesocupado = buildList(situacaoLista);
+
+            // Criando a lista de valor minimo de venda
+            valorVenda.sort();
+            double x = valorVenda.first;
+            double y = valorVenda.last;
+            List vmvenda = [x.toStringAsFixed(2)];
+            
+            while(x < y) {
+              x = x + 50000.0;
+              vmvenda.add(x.toStringAsFixed(2));
+            }
+            for(var item in vmvenda) {
+              List numerosString = item.toString().split('');
+              List numerosInt = [];
+              for(var i in numerosString) {                
+                if(i != '.') {
+                  numerosInt.add(int.parse(i));
+                }
+              }
+              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+              this.valorMinimoVenda.add(numerosBrasileirados);
+            }
+
+            // Criando a lista de valor maximo de avaliação
+            valorAvaliacao.sort();
+            double x1 = valorAvaliacao.first;
+            double y1 = valorAvaliacao.last;
+            List vmavaliacao = [x1.toStringAsFixed(2)];
+            
+            while(x1 < y1) {
+              x1 = x1 + 50000.0;
+              vmavaliacao.add(x1.toStringAsFixed(2));
+            }
+            for(var item in vmavaliacao) {
+              List numerosString = item.toString().split('');
+              List numerosInt = [];
+              for(var i in numerosString) {                
+                if(i != '.') {
+                  numerosInt.add(int.parse(i));
+                }
+              }
+              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+              this.valorMaximoAvaliacao.add(numerosBrasileirados);
+            }
 
             
             print('nao_faz_nada');
@@ -438,10 +509,56 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('Leilões de Imóveis da Caixa'),
-        backgroundColor: new Color(0xFF1387b3),
+        backgroundColor: this.azul,
       ),
       body: new ListView(
         children: <Widget>[
+          new Container(
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Estado *',
+              valueText: this.valueTextEstado,
+              valueStyle: valueStyle,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  child: new MyForm(onSubmit: onSubmit, rolamento: estado, tipoLista: 'Estado')
+                );
+              },
+              onPressed2: () {
+                setState(() {
+                  this.valueTextEstado = ' ';
+                  this.formSubmit['estado'] = ' ';
+                });
+              }
+            ),
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+            child: new InputDropdown3(
+              labelText: 'Cidade *',
+              valueText: this.valueTextCidade,
+              valueStyle: valueStyle,
+              onPressed: () {
+                
+                this.cidade = this.dictEstadosCidades[this.valueTextEstado];
+                if(this.cidade != null) {
+                  showDialog(
+                    context: context,
+                    child: new MyForm(onSubmit: onSubmit, rolamento: this.cidade, tipoLista: 'Cidade')
+                  );
+                }
+              },
+              onPressed2: () {
+                setState(() {
+                  this.valueTextCidade = ' ';
+                  this.formSubmit['cidade'] = ' ';
+                });
+              }
+            ),
+          ),
+
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -575,49 +692,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                 setState(() {
                   this.valueOcupadoDesocupado = ' ';
                   this.formSubmit['ocupado_desocupado'] = ' ';
-                });
-              }
-            ),
-          ),
-
-          new Container(
-            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
-            child: new InputDropdown3(
-              labelText: 'Estado',
-              valueText: this.valueTextEstado,
-              valueStyle: valueStyle,
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  child: new MyForm(onSubmit: onSubmit, rolamento: estado, tipoLista: 'Estado')
-                );
-              },
-              onPressed2: () {
-                setState(() {
-                  this.valueTextEstado = ' ';
-                  this.formSubmit['estado'] = ' ';
-                });
-              }
-            ),
-          ),
-
-          new Container(
-            margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
-            child: new InputDropdown3(
-              labelText: 'Cidade',
-              valueText: this.valueTextCidade,
-              valueStyle: valueStyle,
-              onPressed: () {
-                this.cidade = this.dictEstadosCidades[this.valueTextEstado];
-                showDialog(
-                  context: context,
-                  child: new MyForm(onSubmit: onSubmit, rolamento: this.cidade, tipoLista: 'Cidade')
-                );
-              },
-              onPressed2: () {
-                setState(() {
-                  this.valueTextCidade = ' ';
-                  this.formSubmit['cidade'] = ' ';
                 });
               }
             ),
