@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:queries/collections.dart';
 import 'mapa.dart';
 import 'querys.dart';
+import 'localizacao.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -178,12 +179,21 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   @override
   initState() async {
     super.initState();
+    Localizacao localizacao = new Localizacao();
+    localizacao.initPlatformState();
+
     this.formSubmit['proposta'] = this.proposta[0][0]; // Sim
 
     getApplicationDocumentsDirectory().then((Directory directory) {
       dir = directory;
       jsonFile = new File(dir.path + "/" + fileName);
       fileExists = jsonFile.existsSync();
+      List estados = [];
+      List tiposImoveis = [];
+      List tipoLeilao = [];
+      List situacaoLista = [];
+      List valorVenda = [];
+      List valorAvaliacao = [];
 
       if (fileExists) {
         fileContent = json.decode(jsonFile.readAsStringSync());
@@ -191,14 +201,85 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
 
         FirebaseDB.getImoveis().then((dataImoveis) {
           String versionFirebase = dataImoveis.imoveis[0]['versao'];
-          List estados = [];
-          List tiposImoveis = [];
-          List tipoLeilao = [];
-          List situacaoLista = [];
-          List valorVenda = [];
-          List valorAvaliacao = [];
+
           if(int.parse(versionArquivo) < int.parse(versionFirebase)) {
             createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
+            fileContent = json.decode(jsonFile.readAsStringSync());
+            for(var item in fileContent['imoveis']) {
+              estados.add(item['estado']);
+              tipoLeilao.add(item['tipo_leilao']);
+              tiposImoveis.add(item['tipo']);
+              situacaoLista.add(item['situacao']);
+              valorVenda.add(item['vlr_de_venda']);
+              valorAvaliacao.add(item['vlr_de_avaliacao']);
+              //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
+            }
+
+            // criando a lista de estados e o dicionario estado->cidades
+            this.estado = new Collection(estados).distinct().toList();
+            for(var item in this.estado) {
+              this.dictEstadosCidades[item] = [];
+            }
+            for(var item in fileContent['imoveis']) {
+              this.dictEstadosCidades[item['estado']].add(item['cidade']);
+            }
+            void iterateMapEntry(key, value) {
+              this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
+            }
+            this.dictEstadosCidades.forEach(iterateMapEntry);
+
+            // Cria lista de tipos de leilões
+            this.tipoImoveis = buildList(tiposImoveis);           
+
+            // Criando lista de tipos de imóveis
+            this.leilaoTipo = buildList(tipoLeilao);
+
+            // Criando a lista da situação do imóvel: Ocupado ou Desocupado
+            this.ocupadoDesocupado = buildList(situacaoLista);
+
+            // Criando a lista de valor minimo de venda
+            valorVenda.sort();
+            double x = valorVenda.first;
+            double y = valorVenda.last;
+            List vmvenda = [x.toStringAsFixed(2)];
+            
+            while(x < y) {
+              x = x + 50000.0;
+              vmvenda.add(x.toStringAsFixed(2));
+            }
+            for(var item in vmvenda) {
+              List numerosString = item.toString().split('');
+              List numerosInt = [];
+              for(var i in numerosString) {                
+                if(i != '.') {
+                  numerosInt.add(int.parse(i));
+                }
+              }
+              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+              this.valorMinimoVenda.add(numerosBrasileirados);
+            }
+
+            // Criando a lista de valor maximo de avaliação
+            valorAvaliacao.sort();
+            double x1 = valorAvaliacao.first;
+            double y1 = valorAvaliacao.last;
+            List vmavaliacao = [x1.toStringAsFixed(2)];
+            
+            while(x1 < y1) {
+              x1 = x1 + 50000.0;
+              vmavaliacao.add(x1.toStringAsFixed(2));
+            }
+            for(var item in vmavaliacao) {
+              List numerosString = item.toString().split('');
+              List numerosInt = [];
+              for(var i in numerosString) {                
+                if(i != '.') {
+                  numerosInt.add(int.parse(i));
+                }
+              }
+              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+              this.valorMaximoAvaliacao.add(numerosBrasileirados);
+            }
             print('mudar');
           } else {
             for(var item in fileContent['imoveis']) {
@@ -282,6 +363,82 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
       } else {
         FirebaseDB.getImoveis().then((dataImoveis) {
           createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
+          fileContent = json.decode(jsonFile.readAsStringSync());
+          for(var item in fileContent['imoveis']) {
+            estados.add(item['estado']);
+            tipoLeilao.add(item['tipo_leilao']);
+            tiposImoveis.add(item['tipo']);
+            situacaoLista.add(item['situacao']);
+            valorVenda.add(item['vlr_de_venda']);
+            valorAvaliacao.add(item['vlr_de_avaliacao']);
+            //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
+          }
+
+          // criando a lista de estados e o dicionario estado->cidades
+          this.estado = new Collection(estados).distinct().toList();
+          for(var item in this.estado) {
+            this.dictEstadosCidades[item] = [];
+          }
+          for(var item in fileContent['imoveis']) {
+            this.dictEstadosCidades[item['estado']].add(item['cidade']);
+          }
+          void iterateMapEntry(key, value) {
+            this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
+          }
+          this.dictEstadosCidades.forEach(iterateMapEntry);
+
+          // Cria lista de tipos de leilões
+          this.tipoImoveis = buildList(tiposImoveis);           
+
+          // Criando lista de tipos de imóveis
+          this.leilaoTipo = buildList(tipoLeilao);
+
+          // Criando a lista da situação do imóvel: Ocupado ou Desocupado
+          this.ocupadoDesocupado = buildList(situacaoLista);
+
+          // Criando a lista de valor minimo de venda
+          valorVenda.sort();
+          double x = valorVenda.first;
+          double y = valorVenda.last;
+          List vmvenda = [x.toStringAsFixed(2)];
+          
+          while(x < y) {
+            x = x + 50000.0;
+            vmvenda.add(x.toStringAsFixed(2));
+          }
+          for(var item in vmvenda) {
+            List numerosString = item.toString().split('');
+            List numerosInt = [];
+            for(var i in numerosString) {                
+              if(i != '.') {
+                numerosInt.add(int.parse(i));
+              }
+            }
+            String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+            this.valorMinimoVenda.add(numerosBrasileirados);
+          }
+
+          // Criando a lista de valor maximo de avaliação
+          valorAvaliacao.sort();
+          double x1 = valorAvaliacao.first;
+          double y1 = valorAvaliacao.last;
+          List vmavaliacao = [x1.toStringAsFixed(2)];
+          
+          while(x1 < y1) {
+            x1 = x1 + 50000.0;
+            vmavaliacao.add(x1.toStringAsFixed(2));
+          }
+          for(var item in vmavaliacao) {
+            List numerosString = item.toString().split('');
+            List numerosInt = [];
+            for(var i in numerosString) {                
+              if(i != '.') {
+                numerosInt.add(int.parse(i));
+              }
+            }
+            String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+            this.valorMaximoAvaliacao.add(numerosBrasileirados);
+          }
         });
       }
     });
