@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:map_view/map_view.dart';
-import 'dart:async';
-import 'localizacao.dart';
 import 'dbfirebase.dart';
 import 'textpicker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:queries/collections.dart';
-
-//import 'palette.dart';
+import 'mapa.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -51,7 +48,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   MapView mapView = new MapView();
   var compositeSubscription = new CompositeSubscription();
   Color azul = new Color(0xFF1387b3);
-  Localizacao localizacao = new Localizacao();
   double latitude = -15.794229;
   double longitude = -47.882166;
   List coordenadas = [];
@@ -104,16 +100,10 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   ];
 
   List tipoImoveis = [];
-
   List valorMinimoVenda = [];
   List valorMaximoAvaliacao = [];
-
   List ocupadoDesocupado = [];
-
-  //Map<String, List> estadoCidade;
-  //List estadosNaoDuplicados = [];
   Map dictEstadosCidades = {};
-
   List estado = [];
   List cidade = [];
 
@@ -187,50 +177,38 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   @override
   initState() async {
     super.initState();
-    
-    //FirebaseDB.getVersion().then((dataVersion) {});
+    this.formSubmit['proposta'] = this.proposta[0][0]; // Sim
+    //FirebaseDB.getImoveis().then((dataImoveis) {
+    //  for(var item in dataImoveis.imoveis) {
+    //    this.tipo = item['tipo'];
+    //    this.situacao = item['situacao'];
+    //    this.vlr_de_avaliacao = item['vlr_de_avaliacao'];
+    //    this.vlr_de_venda = item['vlr_de_venda'];
+    //    this.endereco = item['endereco'];
+    //    this.bairro = item['bairro'];
+    //    this.descricao = item['descricao'];
+    //    this.id = item['id'];
+    //    this.leilao = item['leilao'];
+    //    this.num_do_bem = item['num_do_bem'];
 
-    FirebaseDB.getImoveis().then((dataImoveis) {
-      for(var item in dataImoveis.imoveis) {
-        this.tipo = item['tipo'];
-        this.situacao = item['situacao'];
-        this.vlr_de_avaliacao = item['vlr_de_avaliacao'];
-        this.vlr_de_venda = item['vlr_de_venda'];
-        this.endereco = item['endereco'];
-        this.bairro = item['bairro'];
-        this.descricao = item['descricao'];
-        this.id = item['id'];
-        this.leilao = item['leilao'];
-        this.num_do_bem = item['num_do_bem'];
+    //    this.tipo = item['tipo'];
 
-        this.tipo = item['tipo'];
+    //    var info =
+    //      this.tipo + '|' +
+    //      this.situacao + '|' +
+    //      this.vlr_de_avaliacao.toString() + '|' +
+    //      this.vlr_de_venda.toString() + '|' +
+    //      this.endereco + '|' +
+    //      this.bairro + '|' +
+    //      this.descricao + '|' +
+    //      this.id + '|' +
+    //      this.leilao + '|' +
+    //      this.num_do_bem;
 
-        var info =
-          this.tipo + '|' +
-          this.situacao + '|' +
-          this.vlr_de_avaliacao.toString() + '|' +
-          this.vlr_de_venda.toString() + '|' +
-          this.endereco + '|' +
-          this.bairro + '|' +
-          this.descricao + '|' +
-          this.id + '|' +
-          this.leilao + '|' +
-          this.num_do_bem;
-
-        this.marcadores.add(
-          new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
-      }
-    });
-
-    localizacao.initPlatformState().then((data) {
-      if(data != null) {
-        for(var i in data.values) {
-        this.coordenadas.add(i);
-      }
-      this.latitude = coordenadas[1];
-      this.longitude = coordenadas[3];
-      }      
-    });
+    //    this.marcadores.add(
+    //      new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
+    //  }
+    //});
 
     getApplicationDocumentsDirectory().then((Directory directory) {
       dir = directory;
@@ -328,29 +306,15 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
               this.valorMaximoAvaliacao.add(numerosBrasileirados);
             }
-
-            
             print('nao_faz_nada');
           }
-          
-          
-
         });
-        
-
-
-        
-        //this.setState(() {
-        //  fileContent = json.decode(jsonFile.readAsStringSync());
-        //});
       } else {
         FirebaseDB.getImoveis().then((dataImoveis) {
           createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
-
         });
       }
     });
-
   }
 
   void showTipoLeilaoDialog<T>({ BuildContext context, Widget child }) {
@@ -505,6 +469,9 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   @override
   Widget build(BuildContext context) {
     final TextStyle valueStyle = Theme.of(context).textTheme.title;
+    const Color _kKeyUmbraOpacity = const Color(0x33000000); // alpha = 0.2
+    const Color _kKeyPenumbraOpacity = const Color(0x24000000); // alpha = 0.14
+    const Color _kAmbientShadowOpacity = const Color(0x1F000000); // alpha = 0.12
 
     return new Scaffold(
       appBar: new AppBar(
@@ -533,7 +500,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -541,7 +507,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               valueText: this.valueTextCidade,
               valueStyle: valueStyle,
               onPressed: () {
-                
                 this.cidade = this.dictEstadosCidades[this.valueTextEstado];
                 if(this.cidade != null) {
                   showDialog(
@@ -558,7 +523,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -582,7 +546,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -606,7 +569,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -630,7 +592,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -651,7 +612,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -672,7 +632,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
@@ -696,143 +655,107 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               }
             ),
           ),
-          
-          new Card(
-            child: new Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                !this.mapaImovel ? new Container() :
-                new Image.network(
-                  staticMapProvider.getStaticUri(
-                    new Location(this.latitude, this.longitude),
-                    16, width: 900, height: 400).toString() +
-                    "&markers=color:red|label:" + this.label +"|" + this.latitude.toString() + "," + this.longitude.toString()
-                ),
-                new Text('tipo: ' + this.tipo),
-                new Text('situação: ' + this.situacao),
-                new Text('valor de avaliação: ' + this.vlr_de_avaliacao.toString()),
-                new Text('valor de venda' + this.vlr_de_venda.toString()),
-                new Text('endereção: ' + this.endereco),
-                new Text('bairro: ' + this.bairro),
-                new Text('descrição: ' + this.descricao),
-                new Text('id:' + this.id),
-                new Text('leilão: ' + this.leilao),
-                new Text('numero do bem: ' + this.num_do_bem)                
-              ],
-            ),
-          ),
           new Column(
             children: <Widget>[
-              new RaisedButton(
-                onPressed: _mapa,
-                child: new Text('Buscar')
+              new Container(
+                margin: new EdgeInsets.all(12.0),
+              ),
+            ],
+          ),
+          new Column(
+            children: <Widget>[              
+              new InkWell(
+                onTap: () {
+                  print(this.formSubmit);
+
+                  String tipoLeilaoForm = this.formSubmit['tipoleilao'];
+                  String propostaForm = this.formSubmit['proposta'];
+                  String tipoImovelForm = this.formSubmit['tipo'];
+                  double valorMinimoVendaForm = this.formSubmit['valor_minimo_venda'];
+                  double valorMaximoAvaliacaoForm = this.formSubmit['valor_maximo_avaliacao'];
+                  String ocupadoDesocupadoForm = this.formSubmit['ocupado_desocupado'];
+                  String estadoForm = this.formSubmit['estado'];
+                  String cidadeForm = this.formSubmit['cidade'];
+
+                  
+
+                  fileContent = json.decode(jsonFile.readAsStringSync());
+                  for(var item in fileContent['imoveis']) {
+                    String estadoFB = item['estado'];
+                    String cidadeFB = item['cidade'];
+                    String propostaFB = item['proposta'];
+                    String tipo_leilaoFB = item['tipo_leilao'];
+                    String tipoFB = item['tipo'];
+                    String situacaoFB = item['situacao'];
+                    double vlr_de_vendaFB = item['vlr_de_venda'];
+                    double vlr_de_avaliacaoFB = item['vlr_de_avaliacao'];
+
+                    if(tipoImovelForm == tipoFB) {
+
+                    }
+                    
+                  }
+
+                  // ['tipoleilao', 'proposta', 'tipo', 'valor_minimo_venda', 'valor_maximo_avaliacao', 'ocupado_desocupado', 'estado', 'cidade']
+
+                  //Navigator.of(context).push(new PageRouteBuilder(
+                  //  opaque: false,
+                  //  pageBuilder: (BuildContext context, _, __) {
+                  //    return new MapaPage();
+                  //  },
+                  //  transitionsBuilder: (
+                  //    BuildContext context,
+                  //    Animation<double> animation,
+                  //    Animation<double> secondaryAnimation,
+                  //    Widget child,
+                  //  ) {
+                  //    return new SlideTransition(
+                  //      position: new Tween<Offset>(
+                  //        begin:  const Offset(1.0, 0.0),
+                  //        end: Offset.zero,
+                  //      ).animate(animation),
+                  //      child: child,
+                  //    );
+                  //  }
+                  //));
+                },
+                child: new Container(
+                  margin: new EdgeInsets.only(top:4.0, bottom: 4.0, left: 8.0, right: 8.0),
+                  decoration: new BoxDecoration(
+                    color: new Color(0xFFF7941E),
+                    borderRadius: new BorderRadius.all(const Radius.circular(3.0)),
+                    boxShadow: [
+                      const BoxShadow(offset: const Offset(0.0, 2.0), blurRadius: 4.0, spreadRadius: -1.0, color: _kKeyUmbraOpacity),
+                      const BoxShadow(offset: const Offset(0.0, 4.0), blurRadius: 5.0, spreadRadius: 0.0, color: _kKeyPenumbraOpacity),
+                      const BoxShadow(offset: const Offset(0.0, 1.0), blurRadius: 10.0, spreadRadius: 0.0, color: _kAmbientShadowOpacity),
+                    ]
+                  ),
+                  child: new Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      new Container(
+                        padding: new EdgeInsets.only(top: 16.0, bottom: 16.0),
+                        child: new Text(
+                          'Buscar',
+                          style: new TextStyle(
+                            color: Colors.white,
+                            fontFamily: "Futura",
+                            fontSize: 16.0
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              new Container(
+                margin: new EdgeInsets.all(32.0),
               )
             ],
           ),
         ],
       )
-        
-      
     );
-  }
-
-  Future _mapa() async {
-    //1. Show the map
-    mapView.show(
-      new MapOptions(
-        showUserLocation: true,
-        title: "Imóveis de leilão",
-        initialCameraPosition: new CameraPosition(new Location(this.latitude, this.longitude), 18.0)),
-          toolbarActions: <ToolbarAction>[new ToolbarAction("Fechar", 1)]
-    );
-
-    var sub = mapView.onMapReady.listen((_) {
-      mapView.setMarkers(this.marcadores);
-      mapView.zoomToFit(padding: 100);
-    });
-    compositeSubscription.add(sub);
-
-    sub = mapView.onTouchAnnotation.listen((annotation) {
-      _handleDismiss(annotation);
-      
-    });
-    compositeSubscription.add(sub);
-
-    sub = mapView.onToolbarAction.listen((id) {
-      if (id == 1) {
-        mapView.dismiss();
-      }
-    });
-    compositeSubscription.add(sub);
-   
-  }
-
-  _handleDismiss(annotation) async {
-    setState(() async {
-      List informacao = annotation.title.split('|');
-
-      this.tipo = informacao[0];
-      this.situacao = informacao[1];
-      this.vlr_de_avaliacao = informacao[2];
-      this.vlr_de_venda = informacao[3];
-      this.endereco = informacao[4];
-      this.bairro = informacao[5];
-      this.descricao = informacao[6];
-      this.id = informacao[7];
-      this.leilao = informacao[8];
-      this.num_do_bem = informacao[9];
-
-      this.latitude = annotation.latitude;
-      this.longitude = annotation.longitude;
-
-      this.label = this.tipo[0];
-
-
-      this.mapaImovel = true;
-
-      //print(staticMapProvider.getStaticUri(
-      //new Location(this.latitude, this.longitude),
-      //20, width: 900, height: 400).toString() +
-      //"&markers=color:red|label:" + this.label +"|" + this.latitude.toString() + "," + this.longitude.toString());
-
-    });
-
-
-    mapView.dismiss();
-    compositeSubscription.cancel();
-  }
-}
-
-
-
-class CompositeSubscription {
-  Set<StreamSubscription> _subscriptions = new Set();
-
-  void cancel() {
-    for (var n in this._subscriptions) {
-      n.cancel();
-    }
-    this._subscriptions = new Set();
-  }
-
-  void add(StreamSubscription subscription) {
-    this._subscriptions.add(subscription);
-  }
-
-  void addAll(Iterable<StreamSubscription> subs) {
-    _subscriptions.addAll(subs);
-  }
-
-  bool remove(StreamSubscription subscription) {
-    return this._subscriptions.remove(subscription);
-  }
-
-  bool contains(StreamSubscription subscription) {
-    return this._subscriptions.contains(subscription);
-  }
-
-  List<StreamSubscription> toList() {
-    return this._subscriptions.toList();
   }
 }
 
