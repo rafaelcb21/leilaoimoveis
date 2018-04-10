@@ -6,7 +6,8 @@ import 'localizacao.dart';
 var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
 
 class MapaPage extends StatefulWidget {
-
+  MapaPage(this.imoveis);
+  List imoveis;
   @override
   MapaPageState createState() => new MapaPageState();
 }
@@ -19,8 +20,7 @@ class MapaPageState extends State<MapaPage> {
   double longitude = -47.882166;
   List coordenadas = [];
   List<Marker> marcadores = [];
-  var compositeSubscription = new CompositeSubscription();
-  
+  var compositeSubscription = new CompositeSubscription();  
 
   String tipo = '';
   String situacao = '';
@@ -40,6 +40,36 @@ class MapaPageState extends State<MapaPage> {
   @override
   void initState() {
     super.initState();
+
+    for(var item in widget.imoveis) {
+      this.tipo = item['tipo'];
+      this.situacao = item['situacao'];
+      this.vlr_de_avaliacao = item['vlr_de_avaliacao'];
+      this.vlr_de_venda = item['vlr_de_venda'];
+      this.endereco = item['endereco'];
+      this.bairro = item['bairro'];
+      this.descricao = item['descricao'];
+      this.id = item['id'];
+      this.leilao = item['leilao'];
+      this.num_do_bem = item['num_do_bem'];
+      this.tipo = item['tipo'];
+
+      var info =
+        this.tipo + '|' +
+        this.situacao + '|' +
+        this.vlr_de_avaliacao.toString() + '|' +
+        this.vlr_de_venda.toString() + '|' +
+        this.endereco + '|' +
+        this.bairro + '|' +
+        this.descricao + '|' +
+        this.id + '|' +
+        this.leilao + '|' +
+        this.num_do_bem;
+
+      this.marcadores.add(
+        new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
+    }
+
 
     localizacao.initPlatformState().then((data) {
       if(data != null) {
@@ -65,30 +95,32 @@ class MapaPageState extends State<MapaPage> {
       ),
       body: new ListView(
         children: <Widget>[
-          //new Card(
-          //  child: new Column(
-          //    crossAxisAlignment: CrossAxisAlignment.start,
-          //    children: <Widget>[
-          //      !this.mapaImovel ? new Container() :
-          //      new Image.network(
-          //        staticMapProvider.getStaticUri(
-          //          new Location(this.latitude, this.longitude),
-          //          16, width: 900, height: 400).toString() +
-          //          "&markers=color:red|label:" + this.label +"|" + this.latitude.toString() + "," + this.longitude.toString()
-          //      ),
-          //      new Text('tipo: ' + this.tipo),
-          //      new Text('situação: ' + this.situacao),
-          //      new Text('valor de avaliação: ' + this.vlr_de_avaliacao.toString()),
-          //      new Text('valor de venda' + this.vlr_de_venda.toString()),
-          //      new Text('endereção: ' + this.endereco),
-          //      new Text('bairro: ' + this.bairro),
-          //      new Text('descrição: ' + this.descricao),
-          //      new Text('id:' + this.id),
-          //      new Text('leilão: ' + this.leilao),
-          //      new Text('numero do bem: ' + this.num_do_bem)                
-          //    ],
-          //  ),
-          //),
+          ////////
+          new Card(
+            child: new Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                !this.mapaImovel ? new Container() :
+                new Image.network(
+                  staticMapProvider.getStaticUri(
+                    new Location(this.latitude, this.longitude),
+                    16, width: 900, height: 400).toString() +
+                    "&markers=color:red|label:" + this.label +"|" + this.latitude.toString() + "," + this.longitude.toString()
+                ),
+                new Text('tipo: ' + this.tipo),
+                new Text('situação: ' + this.situacao),
+                new Text('valor de avaliação: ' + this.vlr_de_avaliacao.toString()),
+                new Text('valor de venda' + this.vlr_de_venda.toString()),
+                new Text('endereção: ' + this.endereco),
+                new Text('bairro: ' + this.bairro),
+                new Text('descrição: ' + this.descricao),
+                new Text('id:' + this.id),
+                new Text('leilão: ' + this.leilao),
+                new Text('numero do bem: ' + this.num_do_bem)                
+              ],
+            ),
+          ),
+          ////////
         ],
       )
     );

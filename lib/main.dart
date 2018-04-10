@@ -179,37 +179,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   initState() async {
     super.initState();
     this.formSubmit['proposta'] = this.proposta[0][0]; // Sim
-    //FirebaseDB.getImoveis().then((dataImoveis) {
-    //  for(var item in dataImoveis.imoveis) {
-    //    this.tipo = item['tipo'];
-    //    this.situacao = item['situacao'];
-    //    this.vlr_de_avaliacao = item['vlr_de_avaliacao'];
-    //    this.vlr_de_venda = item['vlr_de_venda'];
-    //    this.endereco = item['endereco'];
-    //    this.bairro = item['bairro'];
-    //    this.descricao = item['descricao'];
-    //    this.id = item['id'];
-    //    this.leilao = item['leilao'];
-    //    this.num_do_bem = item['num_do_bem'];
-
-    //    this.tipo = item['tipo'];
-
-    //    var info =
-    //      this.tipo + '|' +
-    //      this.situacao + '|' +
-    //      this.vlr_de_avaliacao.toString() + '|' +
-    //      this.vlr_de_venda.toString() + '|' +
-    //      this.endereco + '|' +
-    //      this.bairro + '|' +
-    //      this.descricao + '|' +
-    //      this.id + '|' +
-    //      this.leilao + '|' +
-    //      this.num_do_bem;
-
-    //    this.marcadores.add(
-    //      new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
-    //  }
-    //});
 
     getApplicationDocumentsDirectory().then((Directory directory) {
       dir = directory;
@@ -671,35 +640,26 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                   fileContent = json.decode(jsonFile.readAsStringSync());
                   Queryes queryResult = new Queryes();
                   List resultado = queryResult.resultadoQuery(this.formSubmit, fileContent['imoveis']);
-
-                  
-
-                  
-
-                  
-                  
-
-                  
-                  //Navigator.of(context).push(new PageRouteBuilder(
-                  //  opaque: false,
-                  //  pageBuilder: (BuildContext context, _, __) {
-                  //    return new MapaPage();
-                  //  },
-                  //  transitionsBuilder: (
-                  //    BuildContext context,
-                  //    Animation<double> animation,
-                  //    Animation<double> secondaryAnimation,
-                  //    Widget child,
-                  //  ) {
-                  //    return new SlideTransition(
-                  //      position: new Tween<Offset>(
-                  //        begin:  const Offset(1.0, 0.0),
-                  //        end: Offset.zero,
-                  //      ).animate(animation),
-                  //      child: child,
-                  //    );
-                  //  }
-                  //));
+                  Navigator.of(context).push(new PageRouteBuilder(
+                    opaque: false,
+                    pageBuilder: (BuildContext context, _, __) {
+                      return new MapaPage(resultado);
+                    },
+                    transitionsBuilder: (
+                      BuildContext context,
+                      Animation<double> animation,
+                      Animation<double> secondaryAnimation,
+                      Widget child,
+                    ) {
+                      return new SlideTransition(
+                        position: new Tween<Offset>(
+                          begin:  const Offset(1.0, 0.0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      );
+                    }
+                  ));
                 },
                 child: new Container(
                   margin: new EdgeInsets.only(top:4.0, bottom: 4.0, left: 8.0, right: 8.0),
