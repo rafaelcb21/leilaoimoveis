@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:queries/collections.dart';
 import 'mapa.dart';
+import 'querys.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -111,8 +112,8 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     'tipoleilao': ' ',
     'proposta': ' ',
     'tipo': ' ',
-    'valor_minimo_venda': ' ',
-    'valor_maximo_avaliacao': ' ',
+    'valor_minimo_venda': 0.0,
+    'valor_maximo_avaliacao': 0.0,
     'ocupado_desocupado': ' ',
     'estado': ' ',
     'cidade': ' ',
@@ -607,7 +608,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               onPressed2: () {
                 setState(() {
                   this.valueTextVMVenda = ' ';
-                  this.formSubmit['valor_minimo_venda'] = ' ';
+                  this.formSubmit['valor_minimo_venda'] = 0.0;
                 });
               }
             ),
@@ -627,7 +628,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               onPressed2: () {
                 setState(() {
                   this.valueTextVMAvaliacao = ' ';
-                  this.formSubmit['valor_maximo_avaliacao'] = ' ';
+                  this.formSubmit['valor_maximo_avaliacao'] = 0.0;
                 });
               }
             ),
@@ -667,37 +668,18 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               new InkWell(
                 onTap: () {
                   print(this.formSubmit);
-
-                  String tipoLeilaoForm = this.formSubmit['tipoleilao'];
-                  String propostaForm = this.formSubmit['proposta'];
-                  String tipoImovelForm = this.formSubmit['tipo'];
-                  double valorMinimoVendaForm = this.formSubmit['valor_minimo_venda'];
-                  double valorMaximoAvaliacaoForm = this.formSubmit['valor_maximo_avaliacao'];
-                  String ocupadoDesocupadoForm = this.formSubmit['ocupado_desocupado'];
-                  String estadoForm = this.formSubmit['estado'];
-                  String cidadeForm = this.formSubmit['cidade'];
+                  fileContent = json.decode(jsonFile.readAsStringSync());
+                  Queryes queryResult = new Queryes();
+                  List resultado = queryResult.resultadoQuery(this.formSubmit, fileContent['imoveis']);
 
                   
 
-                  fileContent = json.decode(jsonFile.readAsStringSync());
-                  for(var item in fileContent['imoveis']) {
-                    String estadoFB = item['estado'];
-                    String cidadeFB = item['cidade'];
-                    String propostaFB = item['proposta'];
-                    String tipo_leilaoFB = item['tipo_leilao'];
-                    String tipoFB = item['tipo'];
-                    String situacaoFB = item['situacao'];
-                    double vlr_de_vendaFB = item['vlr_de_venda'];
-                    double vlr_de_avaliacaoFB = item['vlr_de_avaliacao'];
+                  
 
-                    if(tipoImovelForm == tipoFB) {
+                  
+                  
 
-                    }
-                    
-                  }
-
-                  // ['tipoleilao', 'proposta', 'tipo', 'valor_minimo_venda', 'valor_maximo_avaliacao', 'ocupado_desocupado', 'estado', 'cidade']
-
+                  
                   //Navigator.of(context).push(new PageRouteBuilder(
                   //  opaque: false,
                   //  pageBuilder: (BuildContext context, _, __) {
