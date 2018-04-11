@@ -35,7 +35,6 @@ class Queryes {
 
 
   List resultadoQuery(Map<dynamic, dynamic> formSubmit, List fileContent) {
-    print([formSubmit, fileContent]);
     List imoveis = [];
     String tipoLeilaoForm = formSubmit['tipoleilao'];
     String propostaForm = formSubmit['proposta'];

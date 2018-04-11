@@ -197,7 +197,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
 
       if (fileExists) {
         fileContent = json.decode(jsonFile.readAsStringSync());
-        print(fileContent);
         String versionArquivo = fileContent['imoveis'][0]['versao'];
 
         FirebaseDB.getImoveis().then((dataImoveis) {
@@ -364,7 +363,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
       } else {
         
         FirebaseDB.getImoveis().then((dataImoveis) {
-          print(dataImoveis);
           createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
           fileContent = json.decode(jsonFile.readAsStringSync());
           for(var item in fileContent['imoveis']) {
@@ -799,9 +797,6 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                   fileContent = json.decode(jsonFile.readAsStringSync());
                   Queryes queryResult = new Queryes();
                   List resultado = queryResult.resultadoQuery(this.formSubmit, fileContent['imoveis']);
-                  print('============');
-                  print(resultado);
-                  print('============');
                   Navigator.of(context).push(new PageRouteBuilder(
                     opaque: false,
                     pageBuilder: (BuildContext context, _, __) {
