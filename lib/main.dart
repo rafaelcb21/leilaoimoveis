@@ -197,6 +197,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
 
       if (fileExists) {
         fileContent = json.decode(jsonFile.readAsStringSync());
+        print(fileContent);
         String versionArquivo = fileContent['imoveis'][0]['versao'];
 
         FirebaseDB.getImoveis().then((dataImoveis) {
@@ -210,8 +211,8 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               tipoLeilao.add(item['tipo_leilao']);
               tiposImoveis.add(item['tipo']);
               situacaoLista.add(item['situacao']);
-              valorVenda.add(item['vlr_de_venda']);
-              valorAvaliacao.add(item['vlr_de_avaliacao']);
+              valorVenda.add(double.parse(item['vlr_de_venda']));
+              valorAvaliacao.add(double.parse(item['vlr_de_avaliacao']));
               //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
             }
 
@@ -287,8 +288,8 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               tipoLeilao.add(item['tipo_leilao']);
               tiposImoveis.add(item['tipo']);
               situacaoLista.add(item['situacao']);
-              valorVenda.add(item['vlr_de_venda']);
-              valorAvaliacao.add(item['vlr_de_avaliacao']);
+              valorVenda.add(double.parse(item['vlr_de_venda']));
+              valorAvaliacao.add(double.parse(item['vlr_de_avaliacao']));
               //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
             }
 
@@ -361,7 +362,9 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           }
         });
       } else {
+        
         FirebaseDB.getImoveis().then((dataImoveis) {
+          print(dataImoveis);
           createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
           fileContent = json.decode(jsonFile.readAsStringSync());
           for(var item in fileContent['imoveis']) {
@@ -369,8 +372,8 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
             tipoLeilao.add(item['tipo_leilao']);
             tiposImoveis.add(item['tipo']);
             situacaoLista.add(item['situacao']);
-            valorVenda.add(item['vlr_de_venda']);
-            valorAvaliacao.add(item['vlr_de_avaliacao']);
+            valorVenda.add(double.parse(item['vlr_de_venda']));
+            valorAvaliacao.add(double.parse(item['vlr_de_avaliacao']));
             //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
           }
 
@@ -793,10 +796,12 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
             children: <Widget>[              
               new InkWell(
                 onTap: () {
-                  print(this.formSubmit);
                   fileContent = json.decode(jsonFile.readAsStringSync());
                   Queryes queryResult = new Queryes();
                   List resultado = queryResult.resultadoQuery(this.formSubmit, fileContent['imoveis']);
+                  print('============');
+                  print(resultado);
+                  print('============');
                   Navigator.of(context).push(new PageRouteBuilder(
                     opaque: false,
                     pageBuilder: (BuildContext context, _, __) {

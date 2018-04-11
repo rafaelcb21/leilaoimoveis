@@ -1,5 +1,41 @@
+import 'package:intl/intl.dart';
+
 class Queryes {
+
+  String propostaValida(String proposta, String dataInicioProposta, String dataFimProposta) {
+    DateTime agora = new DateTime.now();
+    String agoraString = new DateFormat("yyyy-MM-dd").format(agora);
+    List agoraLista = agoraString.split('-');
+    DateTime hoje = new DateTime.utc(int.parse(agoraLista[0]), int.parse(agoraLista[1]), int.parse(agoraLista[2]));
+    DateTime inicio = DateTime.parse(dataInicioProposta);
+    DateTime fim = DateTime.parse(dataFimProposta);
+
+    if(proposta == 'Sim') {
+      if(
+        hoje.isBefore(inicio) ||
+        hoje.isAfter(inicio) && hoje.isBefore(fim) ||
+        hoje.difference(inicio) == 0 ||
+        hoje.difference(fim) == 0
+      ) {
+        return 'Sim';
+      } else if(agora.isAfter(fim)) {
+        return 'Não';
+      }
+
+    } else if(proposta == 'Não') {
+      if(agora.isAfter(fim)) {
+        return 'Não';
+      } else {
+        return 'Sim';
+      }
+    } else if(proposta == ' ') {
+      return ' ';
+    }
+  }
+
+
   List resultadoQuery(Map<dynamic, dynamic> formSubmit, List fileContent) {
+    print([formSubmit, fileContent]);
     List imoveis = [];
     String tipoLeilaoForm = formSubmit['tipoleilao'];
     String propostaForm = formSubmit['proposta'];
@@ -11,14 +47,17 @@ class Queryes {
     String cidadeForm = formSubmit['cidade'];
 
     for(var item in fileContent) {
+      
       String estadoFB = item['estado'];
       String cidadeFB = item['cidade'];
-      String propostaFB = item['proposta'];
+      String dataInicioProposta = item['data_inicio_proposta'];
+      String dataFimProposta = item['data_termino_proposta'];
+      String propostaFB = propostaValida(propostaForm, dataInicioProposta, dataFimProposta);
       String tipo_leilaoFB = item['tipo_leilao'];
       String tipoFB = item['tipo'];
       String situacaoFB = item['situacao'];
-      double vlr_de_vendaFB = item['vlr_de_venda'];
-      double vlr_de_avaliacaoFB = item['vlr_de_avaliacao'];
+      double vlr_de_vendaFB = double.parse(item['vlr_de_venda']);
+      double vlr_de_avaliacaoFB = double.parse(item['vlr_de_avaliacao']);
 
       if(estadoForm == estadoFB && cidadeForm == cidadeFB && tipoLeilaoForm == ' ' && propostaForm == ' ' && tipoImovelForm == ' ' && valorMinimoVendaForm == 0.0 && valorMaximoAvaliacaoForm == 0.0 && ocupadoDesocupadoForm == ' ') {imoveis.add(item);}
       else if(estadoForm == estadoFB && cidadeForm == cidadeFB && tipoLeilaoForm == tipo_leilaoFB && propostaForm == ' ' && tipoImovelForm == ' ' && valorMinimoVendaForm == 0.0 && valorMaximoAvaliacaoForm == 0.0 && ocupadoDesocupadoForm == ' ')  {imoveis.add(item);}

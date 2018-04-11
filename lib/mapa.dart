@@ -40,7 +40,6 @@ class MapaPageState extends State<MapaPage> {
   @override
   void initState() {
     super.initState();
-
     for(var item in widget.imoveis) {
       this.tipo = item['tipo'];
       this.situacao = item['situacao'];
