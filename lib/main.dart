@@ -11,6 +11,7 @@ import 'package:queries/collections.dart';
 import 'mapa.dart';
 import 'querys.dart';
 import 'localizacao.dart';
+import 'dbsqlite.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -47,28 +48,29 @@ class LeilaoImoveisPage extends StatefulWidget {
 }
 
 class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
-  MapView mapView = new MapView();
-  var compositeSubscription = new CompositeSubscription();
+  DatabaseClient db = new DatabaseClient();
+  //MapView mapView = new MapView();
+  //var compositeSubscription = new CompositeSubscription();
   Color azul = new Color(0xFF1387b3);
-  double latitude = -15.794229;
-  double longitude = -47.882166;
-  List coordenadas = [];
-  List<Marker> marcadores = [];
+  //double latitude = -15.794229;
+  //double longitude = -47.882166;
+  //List coordenadas = [];
+  //List<Marker> marcadores = [];
 
   String tipo = '';
   String situacao = '';
-  double vlr_de_avaliacao = 0.0;
-  double vlr_de_venda = 0.0;
+  String vlr_de_avaliacao = '0.0';
+  String vlr_de_venda = '0.0';
   String endereco = '';
   String bairro = '';
   String descricao = '';
   String id = '';
   String leilao = '';
   String num_do_bem = '';
-  String label = '';
-  Uri staticMapUri;
-  var staticMapProvider = new StaticMapProvider(apiKey);
-  bool mapaImovel = false;
+  //String label = '';
+  //Uri staticMapUri;
+  //var staticMapProvider = new StaticMapProvider(apiKey);
+  //bool mapaImovel = false;
 
   String valueTextTipoLeilao = " ";
   String valueTextProposta = "Sim";
@@ -87,12 +89,13 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   List listaOcupadoDesocupado = [];
   List listaEstado = [];
   List listaCidade = [];
+  List allRealState = [];
 
-  File jsonFile;
-  Directory dir;
-  String fileName = "db.json";
-  bool fileExists = false;
-  Map<String, List> fileContent;
+  //File jsonFile;
+  //Directory dir;
+  //String fileName = "db.json";
+  //bool fileExists = false;
+  //Map<String, List> fileContent;
 
   List leilaoTipo = [];
 
@@ -105,6 +108,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   List valorMinimoVenda = [];
   List valorMaximoAvaliacao = [];
   List ocupadoDesocupado = [];
+  List leiloes = [];
   Map dictEstadosCidades = {};
   List estado = [];
   List cidade = [];
@@ -113,36 +117,39 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     'tipoleilao': ' ',
     'proposta': ' ',
     'tipo': ' ',
-    'valor_minimo_venda': 0.0,
-    'valor_maximo_avaliacao': 0.0,
+    'valor_minimo_venda': '0.0',
+    'valor_maximo_avaliacao': '0.0',
     'ocupado_desocupado': ' ',
     'estado': ' ',
     'cidade': ' ',
   };
 
-  void createFile(Map<String, List> content, Directory dir, String fileName) {
-    print("Creating file!");
-    File file = new File(dir.path + "/" + fileName);
-    file.createSync();
-    fileExists = true;
-    file.writeAsStringSync(json.encode(content));
-  }
+  Versao versaoDB = new Versao();
+  Imovel imovelDB = new Imovel();
 
-  void writeToFile(String key, List value) {
-    //print("Writing to file!");
-    Map<String, List> content = {key: value};
-    //if (fileExists) {
-    //  print("File exists");
-    //  Map<String, List> jsonFileContent = json.decode(jsonFile.readAsStringSync());
-    //  jsonFileContent.addAll(content);
-    //  jsonFile.writeAsStringSync(json.encode(jsonFileContent));
-    //} else {
-    //  print("File does not exist!");
-      createFile(content, dir, fileName);
-    //}
-    //this.setState(() => fileContent = json.decode(jsonFile.readAsStringSync()));
-    //print(fileContent);
-  }
+  //void createFile(Map<String, List> content, Directory dir, String fileName) {
+  //  print("Creating file!");
+  //  File file = new File(dir.path + "/" + fileName);
+  //  file.createSync();
+  //  fileExists = true;
+  //  file.writeAsStringSync(json.encode(content));
+  //}
+
+  //void writeToFile(String key, List value) {
+  //  //print("Writing to file!");
+  //  Map<String, List> content = {key: value};
+  //  //if (fileExists) {
+  //  //  print("File exists");
+  //  //  Map<String, List> jsonFileContent = json.decode(jsonFile.readAsStringSync());
+  //  //  jsonFileContent.addAll(content);
+  //  //  jsonFile.writeAsStringSync(json.encode(jsonFileContent));
+  //  //} else {
+  //  //  print("File does not exist!");
+  //    createFile(content, dir, fileName);
+  //  //}
+  //  //this.setState(() => fileContent = json.decode(jsonFile.readAsStringSync()));
+  //  //print(fileContent);
+  //}
 
   buildList(List lista) {
     List x = [];
@@ -176,272 +183,120 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     }
   }
 
+  void criandoListasForm(List imoveis) {
+    List estados = [];
+    List tiposImoveis = [];
+    List tipoLeilao = [];
+    List situacaoLista = [];
+    List valorVenda = [];
+    List valorAvaliacao = [];
+    List leiloes = [];
+
+    for(var item in imoveis) {
+      estados.add(item['estado']);
+      tipoLeilao.add(item['tipo_leilao']);
+      tiposImoveis.add(item['tipo']);
+      situacaoLista.add(item['situacao']);
+      valorVenda.add(double.parse(item['vlr_de_venda']));
+      valorAvaliacao.add(double.parse(item['vlr_de_avaliacao']));
+      leiloes.add(item['leilao']);
+    }
+
+    // criando a lista de estados e o dicionario estado->cidades
+    this.estado = new Collection(estados).distinct().toList();
+    for(var item in this.estado) {
+      this.dictEstadosCidades[item] = [];
+    }
+    for(var item in imoveis) {
+      this.dictEstadosCidades[item['estado']].add(item['cidade']);
+    }
+    void iterateMapEntry(key, value) {
+      this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
+    }
+    this.dictEstadosCidades.forEach(iterateMapEntry);
+
+    // Cria lista de tipos de leilões
+    this.tipoImoveis = buildList(tiposImoveis);           
+
+    // Criando lista de tipos de imóveis
+    this.leilaoTipo = buildList(tipoLeilao);
+
+    // Criando a lista da situação do imóvel: Ocupado ou Desocupado
+    this.ocupadoDesocupado = buildList(situacaoLista);
+
+    // Criando lista de tipos de imóveis
+    this.leiloes = buildList(leiloes);
+
+    // Criando a lista de valor minimo de venda
+    valorVenda.sort();
+    double x = valorVenda.first;
+    double y = valorVenda.last;
+    List vmvenda = [x.toStringAsFixed(2)];
+    
+    while(x < y) {
+      x = x + 50000.0;
+      vmvenda.add(x.toStringAsFixed(2));
+    }
+    for(var item in vmvenda) {
+      List numerosString = item.toString().split('');
+      List numerosInt = [];
+      for(var i in numerosString) {                
+        if(i != '.') {
+          numerosInt.add(int.parse(i));
+        }
+      }
+      String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+      this.valorMinimoVenda.add(numerosBrasileirados);
+    }
+
+    // Criando a lista de valor maximo de avaliação
+    valorAvaliacao.sort();
+    double x1 = valorAvaliacao.first;
+    double y1 = valorAvaliacao.last;
+    List vmavaliacao = [x1.toStringAsFixed(2)];
+    
+    while(x1 < y1) {
+      x1 = x1 + 50000.0;
+      vmavaliacao.add(x1.toStringAsFixed(2));
+    }
+    for(var item in vmavaliacao) {
+      List numerosString = item.toString().split('');
+      List numerosInt = [];
+      for(var i in numerosString) {                
+        if(i != '.') {
+          numerosInt.add(int.parse(i));
+        }
+      }
+      String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+      this.valorMaximoAvaliacao.add(numerosBrasileirados);
+    }
+  }
+
   @override
-  initState() async {
+  initState() {
     super.initState();
+    db.create();
     Localizacao localizacao = new Localizacao();
     localizacao.initPlatformState();
 
     this.formSubmit['proposta'] = this.proposta[0][0]; // Sim
 
-    getApplicationDocumentsDirectory().then((Directory directory) {
-      dir = directory;
-      jsonFile = new File(dir.path + "/" + fileName);
-      fileExists = jsonFile.existsSync();
-      List estados = [];
-      List tiposImoveis = [];
-      List tipoLeilao = [];
-      List situacaoLista = [];
-      List valorVenda = [];
-      List valorAvaliacao = [];
-
-      if (fileExists) {
-        fileContent = json.decode(jsonFile.readAsStringSync());
-        String versionArquivo = fileContent['imoveis'][0]['versao'];
-
-        FirebaseDB.getImoveis().then((dataImoveis) {
-          String versionFirebase = dataImoveis.imoveis[0]['versao'];
-
-          if(int.parse(versionArquivo) < int.parse(versionFirebase)) {
-            createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
-            fileContent = json.decode(jsonFile.readAsStringSync());
-            for(var item in fileContent['imoveis']) {
-              estados.add(item['estado']);
-              tipoLeilao.add(item['tipo_leilao']);
-              tiposImoveis.add(item['tipo']);
-              situacaoLista.add(item['situacao']);
-              valorVenda.add(double.parse(item['vlr_de_venda']));
-              valorAvaliacao.add(double.parse(item['vlr_de_avaliacao']));
-              //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
-            }
-
-            // criando a lista de estados e o dicionario estado->cidades
-            this.estado = new Collection(estados).distinct().toList();
-            for(var item in this.estado) {
-              this.dictEstadosCidades[item] = [];
-            }
-            for(var item in fileContent['imoveis']) {
-              this.dictEstadosCidades[item['estado']].add(item['cidade']);
-            }
-            void iterateMapEntry(key, value) {
-              this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
-            }
-            this.dictEstadosCidades.forEach(iterateMapEntry);
-
-            // Cria lista de tipos de leilões
-            this.tipoImoveis = buildList(tiposImoveis);           
-
-            // Criando lista de tipos de imóveis
-            this.leilaoTipo = buildList(tipoLeilao);
-
-            // Criando a lista da situação do imóvel: Ocupado ou Desocupado
-            this.ocupadoDesocupado = buildList(situacaoLista);
-
-            // Criando a lista de valor minimo de venda
-            valorVenda.sort();
-            double x = valorVenda.first;
-            double y = valorVenda.last;
-            List vmvenda = [x.toStringAsFixed(2)];
-            
-            while(x < y) {
-              x = x + 50000.0;
-              vmvenda.add(x.toStringAsFixed(2));
-            }
-            for(var item in vmvenda) {
-              List numerosString = item.toString().split('');
-              List numerosInt = [];
-              for(var i in numerosString) {                
-                if(i != '.') {
-                  numerosInt.add(int.parse(i));
-                }
-              }
-              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
-              this.valorMinimoVenda.add(numerosBrasileirados);
-            }
-
-            // Criando a lista de valor maximo de avaliação
-            valorAvaliacao.sort();
-            double x1 = valorAvaliacao.first;
-            double y1 = valorAvaliacao.last;
-            List vmavaliacao = [x1.toStringAsFixed(2)];
-            
-            while(x1 < y1) {
-              x1 = x1 + 50000.0;
-              vmavaliacao.add(x1.toStringAsFixed(2));
-            }
-            for(var item in vmavaliacao) {
-              List numerosString = item.toString().split('');
-              List numerosInt = [];
-              for(var i in numerosString) {                
-                if(i != '.') {
-                  numerosInt.add(int.parse(i));
-                }
-              }
-              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
-              this.valorMaximoAvaliacao.add(numerosBrasileirados);
-            }
-            print('mudar');
-          } else {
-            for(var item in fileContent['imoveis']) {
-              estados.add(item['estado']);
-              tipoLeilao.add(item['tipo_leilao']);
-              tiposImoveis.add(item['tipo']);
-              situacaoLista.add(item['situacao']);
-              valorVenda.add(double.parse(item['vlr_de_venda']));
-              valorAvaliacao.add(double.parse(item['vlr_de_avaliacao']));
-              //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
-            }
-
-            // criando a lista de estados e o dicionario estado->cidades
-            this.estado = new Collection(estados).distinct().toList();
-            for(var item in this.estado) {
-              this.dictEstadosCidades[item] = [];
-            }
-            for(var item in fileContent['imoveis']) {
-              this.dictEstadosCidades[item['estado']].add(item['cidade']);
-            }
-            void iterateMapEntry(key, value) {
-              this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
-            }
-            this.dictEstadosCidades.forEach(iterateMapEntry);
-
-            // Cria lista de tipos de leilões
-            this.tipoImoveis = buildList(tiposImoveis);           
-
-            // Criando lista de tipos de imóveis
-            this.leilaoTipo = buildList(tipoLeilao);
-
-            // Criando a lista da situação do imóvel: Ocupado ou Desocupado
-            this.ocupadoDesocupado = buildList(situacaoLista);
-
-            // Criando a lista de valor minimo de venda
-            valorVenda.sort();
-            double x = valorVenda.first;
-            double y = valorVenda.last;
-            List vmvenda = [x.toStringAsFixed(2)];
-            
-            while(x < y) {
-              x = x + 50000.0;
-              vmvenda.add(x.toStringAsFixed(2));
-            }
-            for(var item in vmvenda) {
-              List numerosString = item.toString().split('');
-              List numerosInt = [];
-              for(var i in numerosString) {                
-                if(i != '.') {
-                  numerosInt.add(int.parse(i));
-                }
-              }
-              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
-              this.valorMinimoVenda.add(numerosBrasileirados);
-            }
-
-            // Criando a lista de valor maximo de avaliação
-            valorAvaliacao.sort();
-            double x1 = valorAvaliacao.first;
-            double y1 = valorAvaliacao.last;
-            List vmavaliacao = [x1.toStringAsFixed(2)];
-            
-            while(x1 < y1) {
-              x1 = x1 + 50000.0;
-              vmavaliacao.add(x1.toStringAsFixed(2));
-            }
-            for(var item in vmavaliacao) {
-              List numerosString = item.toString().split('');
-              List numerosInt = [];
-              for(var i in numerosString) {                
-                if(i != '.') {
-                  numerosInt.add(int.parse(i));
-                }
-              }
-              String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
-              this.valorMaximoAvaliacao.add(numerosBrasileirados);
-            }
-            print('nao_faz_nada');
+    FirebaseDB.getImoveis().then((dataImoveis) async {
+      this.allRealState = dataImoveis.imoveis;
+      int versionFirebase = int.parse(dataImoveis.imoveis[0]['versao']);
+      versaoDB.getVersao().then(
+        (data) {
+          if(versionFirebase > data) {
+            imovelDB.deleteImoveisVersion().then((data) {
+              versaoDB.insertVersao(versionFirebase);
+              imovelDB.insertImoveis(dataImoveis.imoveis);
+              criandoListasForm(dataImoveis.imoveis);
+            });
+          } else if(versionFirebase == data) {
+            criandoListasForm(dataImoveis.imoveis);
           }
-        });
-      } else {
-        
-        FirebaseDB.getImoveis().then((dataImoveis) {
-          createFile({'imoveis': dataImoveis.imoveis}, dir, fileName);
-          fileContent = json.decode(jsonFile.readAsStringSync());
-          for(var item in fileContent['imoveis']) {
-            estados.add(item['estado']);
-            tipoLeilao.add(item['tipo_leilao']);
-            tiposImoveis.add(item['tipo']);
-            situacaoLista.add(item['situacao']);
-            valorVenda.add(double.parse(item['vlr_de_venda']));
-            valorAvaliacao.add(double.parse(item['vlr_de_avaliacao']));
-            //String inteiroListaString = inteiroLista.map((i) => i.toString()).join('');
-          }
-
-          // criando a lista de estados e o dicionario estado->cidades
-          this.estado = new Collection(estados).distinct().toList();
-          for(var item in this.estado) {
-            this.dictEstadosCidades[item] = [];
-          }
-          for(var item in fileContent['imoveis']) {
-            this.dictEstadosCidades[item['estado']].add(item['cidade']);
-          }
-          void iterateMapEntry(key, value) {
-            this.dictEstadosCidades[key] = new Collection(value).distinct().toList();
-          }
-          this.dictEstadosCidades.forEach(iterateMapEntry);
-
-          // Cria lista de tipos de leilões
-          this.tipoImoveis = buildList(tiposImoveis);           
-
-          // Criando lista de tipos de imóveis
-          this.leilaoTipo = buildList(tipoLeilao);
-
-          // Criando a lista da situação do imóvel: Ocupado ou Desocupado
-          this.ocupadoDesocupado = buildList(situacaoLista);
-
-          // Criando a lista de valor minimo de venda
-          valorVenda.sort();
-          double x = valorVenda.first;
-          double y = valorVenda.last;
-          List vmvenda = [x.toStringAsFixed(2)];
-          
-          while(x < y) {
-            x = x + 50000.0;
-            vmvenda.add(x.toStringAsFixed(2));
-          }
-          for(var item in vmvenda) {
-            List numerosString = item.toString().split('');
-            List numerosInt = [];
-            for(var i in numerosString) {                
-              if(i != '.') {
-                numerosInt.add(int.parse(i));
-              }
-            }
-            String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
-            this.valorMinimoVenda.add(numerosBrasileirados);
-          }
-
-          // Criando a lista de valor maximo de avaliação
-          valorAvaliacao.sort();
-          double x1 = valorAvaliacao.first;
-          double y1 = valorAvaliacao.last;
-          List vmavaliacao = [x1.toStringAsFixed(2)];
-          
-          while(x1 < y1) {
-            x1 = x1 + 50000.0;
-            vmavaliacao.add(x1.toStringAsFixed(2));
-          }
-          for(var item in vmavaliacao) {
-            List numerosString = item.toString().split('');
-            List numerosInt = [];
-            for(var i in numerosString) {                
-              if(i != '.') {
-                numerosInt.add(int.parse(i));
-              }
-            }
-            String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
-            this.valorMaximoAvaliacao.add(numerosBrasileirados);
-          }
-        });
-      }
+        }
+      );
     });
   }
 
@@ -749,7 +604,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               onPressed2: () {
                 setState(() {
                   this.valueTextVMVenda = ' ';
-                  this.formSubmit['valor_minimo_venda'] = 0.0;
+                  this.formSubmit['valor_minimo_venda'] = '0.0';
                 });
               }
             ),
@@ -769,7 +624,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               onPressed2: () {
                 setState(() {
                   this.valueTextVMAvaliacao = ' ';
-                  this.formSubmit['valor_maximo_avaliacao'] = 0.0;
+                  this.formSubmit['valor_maximo_avaliacao'] = '0.0';
                 });
               }
             ),
@@ -809,9 +664,11 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
               new InkWell(
                 onTap: () {
                   if(this.formSubmit['estado'] != ' ' && this.formSubmit['cidade'] != ' ') {
-                    fileContent = json.decode(jsonFile.readAsStringSync());
                     Queryes queryResult = new Queryes();
-                    List resultado = queryResult.resultadoQuery(this.formSubmit, fileContent['imoveis']);
+                    print(this.formSubmit);
+                    print(this.allRealState);
+                    List resultado = queryResult.resultadoQuery(this.formSubmit, this.allRealState);
+                    print(resultado);
                     Navigator.of(context).push(new PageRouteBuilder(
                       opaque: false,
                       pageBuilder: (BuildContext context, _, __) {

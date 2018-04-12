@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'dbsqlite.dart';
 
 var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
 
@@ -19,6 +20,7 @@ class MapaPage extends StatefulWidget {
 }
 
 class MapaPageState extends State<MapaPage> {
+  Imovel imovelDB = new Imovel();
   var uuid = new Uuid();
   Color azul = new Color(0xFF1387B3);
   Color azulCeleste = new Color(0xFF1667A6);
@@ -32,8 +34,8 @@ class MapaPageState extends State<MapaPage> {
 
   String tipo = '';
   String situacao = '';
-  double vlr_de_avaliacao = 0.0;
-  double vlr_de_venda = 0.0;
+  String vlr_de_avaliacao = '0.0';
+  String vlr_de_venda = '0.0';
   String endereco = '';
   String bairro = '';
   String descricao = '';
@@ -47,11 +49,11 @@ class MapaPageState extends State<MapaPage> {
   bool mapaImovel = false;
   bool favorito = false;
 
-  File jsonFile;
-  Directory dir;
-  String fileName = "favoritosdb.json";
-  bool fileExists = false;
-  Map<String, List> fileContent;
+  //File jsonFile;
+  //Directory dir;
+  //String fileName = "favoritosdb.json";
+  //bool fileExists = false;
+  //Map<String, List> fileContent;
 
   @override
   void initState() {
@@ -86,7 +88,6 @@ class MapaPageState extends State<MapaPage> {
       this.marcadores.add(
         new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
     }
-
 
     localizacao.initPlatformState().then((data) {
       if(data != null) {
@@ -160,14 +161,13 @@ class MapaPageState extends State<MapaPage> {
       body: !this.mapaImovel ? new Container() : new ListView(
         key: new Key(uuid.v4()),
         children: <Widget>[
-          ////////
           new Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               new Text(
                 'Favorito',
                 style: new TextStyle(
-                  color: favorito ? new Color(0xFFF7941E) : Colors.black38 ,
+                  color: this.favorito ? new Color(0xFFF7941E) : Colors.black38 ,
                   fontFamily: "Futura",
                   fontSize: 16.0,
                   fontWeight: FontWeight.w700
@@ -177,16 +177,19 @@ class MapaPageState extends State<MapaPage> {
                 margin: new EdgeInsets.all(4.0),
               ),
               new IconButton(
-                icon: favorito ? new Icon(Icons.star) : new Icon(Icons.star_border),
+                icon: this.favorito ? new Icon(Icons.star) : new Icon(Icons.star_border),
                 onPressed: () {
                   setState(() {
-                    // criar arquivo
-                    getApplicationDocumentsDirectory().then((Directory directory) {
-                      dir = directory;
-                      jsonFile = new File(dir.path + "/" + fileName);
-                      fileExists = jsonFile.existsSync();
-                    });
-                    favorito = !favorito;
+                    this.favorito = !this.favorito;
+                    imovelDB.getFavorito(this.uuidRandom).then((data) {
+                      if(data == true) {
+                        imovelDB.updateFavorito(this.uuidRandom, "Sim").then((result) {
+                        });
+                      } else if(data == false) {
+                        imovelDB.updateFavorito(this.uuidRandom, "Não").then((result) {
+                        });
+                      }                      
+                    });                    
                   });
                 },
                 color: new Color(0xFFF7941E)
@@ -489,8 +492,8 @@ class MapaPageState extends State<MapaPage> {
    
   }
 
-  _handleDismiss(annotation) async {
-    setState(() async {
+  _handleDismiss(annotation) {
+    setState(() {
       List informacao = annotation.title.split('|');
 
       this.tipo = informacao[0];
@@ -504,6 +507,16 @@ class MapaPageState extends State<MapaPage> {
       this.leilao = informacao[8];
       this.num_do_bem = informacao[9];
       this.uuidRandom = informacao[10];
+
+      imovelDB.getFavorito(this.uuidRandom).then((data) {
+        if(data == true) {
+          this.favorito = false;
+          
+        } else if(data == false) {
+          this.favorito = true;          
+        }        
+      });
+      
 
       this.latitude = annotation.latitude;
       this.longitude = annotation.longitude;

@@ -39,8 +39,8 @@ class Queryes {
     String tipoLeilaoForm = formSubmit['tipoleilao'];
     String propostaForm = formSubmit['proposta'];
     String tipoImovelForm = formSubmit['tipo'];
-    double valorMinimoVendaForm = formSubmit['valor_minimo_venda'];
-    double valorMaximoAvaliacaoForm = formSubmit['valor_maximo_avaliacao'];
+    double valorMinimoVendaForm = double.parse(formSubmit['valor_minimo_venda']);
+    double valorMaximoAvaliacaoForm = double.parse(formSubmit['valor_maximo_avaliacao']);
     String ocupadoDesocupadoForm = formSubmit['ocupado_desocupado'];
     String estadoForm = formSubmit['estado'];
     String cidadeForm = formSubmit['cidade'];
