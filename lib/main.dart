@@ -502,6 +502,20 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
     });
   }
 
+  void showErroDialog<T>({ BuildContext context, Widget child }) {
+    showDialog<T>(
+      context: context,
+      child: child,
+    )
+    .then<Null>((T value) {
+      if (value != null) {
+        setState(() {
+          
+        });
+      }
+    });
+  }
+
   List<Widget> buildListaTipoLeilao(list) {
     this.listaTipoLeilao = [];
     for(var item in list) {
@@ -794,29 +808,64 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
             children: <Widget>[              
               new InkWell(
                 onTap: () {
-                  fileContent = json.decode(jsonFile.readAsStringSync());
-                  Queryes queryResult = new Queryes();
-                  List resultado = queryResult.resultadoQuery(this.formSubmit, fileContent['imoveis']);
-                  Navigator.of(context).push(new PageRouteBuilder(
-                    opaque: false,
-                    pageBuilder: (BuildContext context, _, __) {
-                      return new MapaPage(resultado);
-                    },
-                    transitionsBuilder: (
-                      BuildContext context,
-                      Animation<double> animation,
-                      Animation<double> secondaryAnimation,
-                      Widget child,
-                    ) {
-                      return new SlideTransition(
-                        position: new Tween<Offset>(
-                          begin:  const Offset(1.0, 0.0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      );
-                    }
-                  ));
+                  if(this.formSubmit['estado'] != ' ' && this.formSubmit['cidade'] != ' ') {
+                    fileContent = json.decode(jsonFile.readAsStringSync());
+                    Queryes queryResult = new Queryes();
+                    List resultado = queryResult.resultadoQuery(this.formSubmit, fileContent['imoveis']);
+                    Navigator.of(context).push(new PageRouteBuilder(
+                      opaque: false,
+                      pageBuilder: (BuildContext context, _, __) {
+                        return new MapaPage(resultado);
+                      },
+                      transitionsBuilder: (
+                        BuildContext context,
+                        Animation<double> animation,
+                        Animation<double> secondaryAnimation,
+                        Widget child,
+                      ) {
+                        return new SlideTransition(
+                          position: new Tween<Offset>(
+                            begin:  const Offset(1.0, 0.0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        );
+                      }
+                    ));
+                  } else {
+                    showErroDialog<String>(
+                      context: context,
+                      child: new SimpleDialog(
+                        title: const Text('Erro'),
+                        children: <Widget>[
+                          new Container(
+                            margin: new EdgeInsets.only(left: 24.0),
+                            child: new Row(
+                              children: <Widget>[
+                                new Container(
+                                  margin: new EdgeInsets.only(right: 10.0),
+                                  child: new Icon(
+                                    Icons.error,
+                                    color: const Color(0xFFE57373)),
+                                ),
+                                new Text(
+                                  "Preencha os campos\n- Estado\n- Cidade",
+                                  softWrap: true,
+                                  style: new TextStyle(
+                                    color: Colors.black45,
+                                    fontSize: 16.0,
+                                    fontFamily: "Roboto",
+                                    fontWeight: FontWeight.w500,
+                                  )
+                                )
+                              ],
+                            ),
+                          )
+                        ]
+                      )
+                    );
+                  }
+                  
                 },
                 child: new Container(
                   margin: new EdgeInsets.only(top:4.0, bottom: 4.0, left: 8.0, right: 8.0),

@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
 
@@ -39,10 +41,17 @@ class MapaPageState extends State<MapaPage> {
   String leilao = '';
   String num_do_bem = '';
   String label = '';
+  String uuidRandom = '';
   Uri staticMapUri;
   var staticMapProvider = new StaticMapProvider(apiKey);
   bool mapaImovel = false;
   bool favorito = false;
+
+  File jsonFile;
+  Directory dir;
+  String fileName = "favoritosdb.json";
+  bool fileExists = false;
+  Map<String, List> fileContent;
 
   @override
   void initState() {
@@ -59,6 +68,7 @@ class MapaPageState extends State<MapaPage> {
       this.leilao = item['leilao'];
       this.num_do_bem = item['num_do_bem'];
       this.tipo = item['tipo'];
+      this.uuidRandom = item['uuid'];
 
       var info =
         this.tipo + '|' +
@@ -70,7 +80,8 @@ class MapaPageState extends State<MapaPage> {
         this.descricao + '|' +
         this.id + '|' +
         this.leilao + '|' +
-        this.num_do_bem;
+        this.num_do_bem + '|' +
+        this.uuidRandom;
 
       this.marcadores.add(
         new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
@@ -150,8 +161,41 @@ class MapaPageState extends State<MapaPage> {
         key: new Key(uuid.v4()),
         children: <Widget>[
           ////////
+          new Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              new Text(
+                'Favorito',
+                style: new TextStyle(
+                  color: favorito ? new Color(0xFFF7941E) : Colors.black38 ,
+                  fontFamily: "Futura",
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w700
+                ),
+              ),
+              new Container(
+                margin: new EdgeInsets.all(4.0),
+              ),
+              new IconButton(
+                icon: favorito ? new Icon(Icons.star) : new Icon(Icons.star_border),
+                onPressed: () {
+                  setState(() {
+                    // criar arquivo
+                    getApplicationDocumentsDirectory().then((Directory directory) {
+                      dir = directory;
+                      jsonFile = new File(dir.path + "/" + fileName);
+                      fileExists = jsonFile.existsSync();
+                    });
+                    favorito = !favorito;
+                  });
+                },
+                color: new Color(0xFFF7941E)
+              ),
+            ],
+          ),
+
           new Container(
-            margin: new EdgeInsets.all(18.0),
+            margin: new EdgeInsets.only(top: 0.0, bottom: 18.0, left: 18.0, right: 18.0),
             child: new Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -366,38 +410,7 @@ class MapaPageState extends State<MapaPage> {
                   }),
                 ),
                 new Container(
-                  margin: new EdgeInsets.all(8.0),
-                ),
-
-                new Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    new Text(
-                      'Favorito',
-                      style: new TextStyle(
-                        color: favorito ? new Color(0xFFF7941E) : Colors.black38 ,
-                        fontFamily: "Futura",
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w700
-                      ),
-                    ),
-                    new Container(
-                      margin: new EdgeInsets.all(8.0),
-                    ),
-                    new IconButton(
-                      icon: favorito ? new Icon(Icons.star) : new Icon(Icons.star_border),
-                      onPressed: () {
-                        setState(() {
-                          favorito = !favorito;
-                        });
-                      },
-                      color: new Color(0xFFF7941E)
-                    ),
-                  ],
-                ),
-                
-                new Container(
-                  margin: new EdgeInsets.all(8.0),
+                  margin: new EdgeInsets.all(16.0),
                 ),
 
                 new InkWell(
@@ -490,17 +503,15 @@ class MapaPageState extends State<MapaPage> {
       this.id = informacao[7];
       this.leilao = informacao[8];
       this.num_do_bem = informacao[9];
+      this.uuidRandom = informacao[10];
 
       this.latitude = annotation.latitude;
       this.longitude = annotation.longitude;
 
       this.label = this.tipo[0];
-
-
       this.mapaImovel = true;
 
     });
-
 
     mapView.dismiss();
       compositeSubscription.cancel();
