@@ -12,6 +12,7 @@ import 'mapa.dart';
 import 'querys.dart';
 import 'localizacao.dart';
 import 'dbsqlite.dart';
+import 'favoritos.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -52,6 +53,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   //MapView mapView = new MapView();
   //var compositeSubscription = new CompositeSubscription();
   Color azul = new Color(0xFF1387b3);
+  Color azulCeleste = new Color(0xFF1667A6);
   //double latitude = -15.794229;
   //double longitude = -47.882166;
   //List coordenadas = [];
@@ -472,11 +474,51 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
 
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('Leilões de Imóveis da Caixa'),
+        title: new Text('Imóveis da Caixa'),
         backgroundColor: this.azul,
+        actions: <Widget>[
+          new IconButton(
+            color: Colors.white,
+            icon: new Icon(Icons.star),
+            onPressed: () {
+              Navigator.of(context).push(new PageRouteBuilder(
+                opaque: false,
+                pageBuilder: (BuildContext context, _, __) {
+                  return new FavoritoPage();
+                },
+                transitionsBuilder: (
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
+                  return new SlideTransition(
+                    position: new Tween<Offset>(
+                      begin:  const Offset(1.0, 0.0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  );
+                }
+              ));
+            },
+          )
+        ],
       ),
       body: new ListView(
         children: <Widget>[
+          new Container(
+            margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0, bottom: 8.0),
+            child: new Text(
+              'Leilões',
+              style: new TextStyle(
+                color: this.azulCeleste,
+                fontFamily: "Futura",
+                fontSize: 20.0,
+                fontWeight: FontWeight.w700
+              ),
+            ),
+          ),
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(

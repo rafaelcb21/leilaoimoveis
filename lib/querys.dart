@@ -33,20 +33,30 @@ class Queryes {
     }
   }
 
+  //double toDouble(String x) {
+  //  List ll01 = x.split(' ');
+  //  List ll02 = ll01[1].split(',');
+  //  double ll03 = double.parse(ll02[0].replaceAll('.', '') + '.' + ll02[1]);
+  //  return ll03;
+  //}
+
 
   List resultadoQuery(Map<dynamic, dynamic> formSubmit, List fileContent) {
     List imoveis = [];
     String tipoLeilaoForm = formSubmit['tipoleilao'];
     String propostaForm = formSubmit['proposta'];
     String tipoImovelForm = formSubmit['tipo'];
+
+    //double valorMinimoVendaForm = toDouble(formSubmit['valor_minimo_venda']);
+    //double valorMaximoAvaliacaoForm = toDouble(formSubmit['valor_maximo_avaliacao']);
     double valorMinimoVendaForm = double.parse(formSubmit['valor_minimo_venda']);
     double valorMaximoAvaliacaoForm = double.parse(formSubmit['valor_maximo_avaliacao']);
+
     String ocupadoDesocupadoForm = formSubmit['ocupado_desocupado'];
     String estadoForm = formSubmit['estado'];
     String cidadeForm = formSubmit['cidade'];
 
-    for(var item in fileContent) {
-      
+    for(var item in fileContent) {      
       String estadoFB = item['estado'];
       String cidadeFB = item['cidade'];
       String dataInicioProposta = item['data_inicio_proposta'];

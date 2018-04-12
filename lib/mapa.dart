@@ -102,7 +102,7 @@ class MapaPageState extends State<MapaPage> {
     });
   }
 
-  String numeroBrasil(List<int> numerosLista){
+  String numeroBrasil(List<int> numerosLista) {
     if(numerosLista.length == 0) {
       return '0,00';
     }
@@ -155,9 +155,19 @@ class MapaPageState extends State<MapaPage> {
 
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('Leilões de Imóveis da Caixa'),
+        title: new Text('Imóvel'),
         backgroundColor: this.azul,
+        actions: <Widget>[
+          new IconButton(
+            color: Colors.white,
+            icon: new Icon(Icons.star),
+            onPressed: () {
+              
+            },
+          )
+        ],
       ),
+      
       body: !this.mapaImovel ? new Container() : new ListView(
         key: new Key(uuid.v4()),
         children: <Widget>[
@@ -422,7 +432,7 @@ class MapaPageState extends State<MapaPage> {
                     _mapa();
                   },
                   child: new Container(
-                    margin: new EdgeInsets.only(top:4.0, bottom: 4.0, left: 8.0, right: 8.0),
+                    margin: new EdgeInsets.only(top:4.0, bottom: 4.0),
                     decoration: new BoxDecoration(
                       color: new Color(0xFFF7941E),
                       borderRadius: new BorderRadius.all(const Radius.circular(3.0)),

@@ -211,6 +211,15 @@ class Imovel {
     return favorito;
   }
 
+  Future getAllFavorito() async {
+    Directory path = await getApplicationDocumentsDirectory();
+    String dbPath = join(path.path, "database.db");
+    Database db = await openDatabase(dbPath);
+    List results = await db.rawQuery("SELECT * FROM imovel WHERE favorito = 'Sim'");
+    await db.close();
+    return results;
+  }
+
   Future updateFavorito(String uuid, String valor) async {
     bool favorito = false;
     Directory path = await getApplicationDocumentsDirectory();
