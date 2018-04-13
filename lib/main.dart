@@ -481,26 +481,28 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
             color: Colors.white,
             icon: new Icon(Icons.star),
             onPressed: () {
-              Navigator.of(context).push(new PageRouteBuilder(
-                opaque: false,
-                pageBuilder: (BuildContext context, _, __) {
-                  return new FavoritoPage();
-                },
-                transitionsBuilder: (
-                  BuildContext context,
-                  Animation<double> animation,
-                  Animation<double> secondaryAnimation,
-                  Widget child,
-                ) {
-                  return new SlideTransition(
-                    position: new Tween<Offset>(
-                      begin:  const Offset(1.0, 0.0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  );
-                }
-              ));
+              imovelDB.getAllFavorito().then((data) {
+                Navigator.of(context).push(new PageRouteBuilder(
+                  opaque: false,
+                  pageBuilder: (BuildContext context, _, __) {
+                    return new FavoritoPage(data);
+                  },
+                  transitionsBuilder: (
+                    BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    Widget child,
+                  ) {
+                    return new SlideTransition(
+                      position: new Tween<Offset>(
+                        begin:  const Offset(1.0, 0.0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    );
+                  }
+                ));  
+              });                
             },
           )
         ],
@@ -707,10 +709,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                 onTap: () {
                   if(this.formSubmit['estado'] != ' ' && this.formSubmit['cidade'] != ' ') {
                     Queryes queryResult = new Queryes();
-                    print(this.formSubmit);
-                    print(this.allRealState);
                     List resultado = queryResult.resultadoQuery(this.formSubmit, this.allRealState);
-                    print(resultado);
                     Navigator.of(context).push(new PageRouteBuilder(
                       opaque: false,
                       pageBuilder: (BuildContext context, _, __) {

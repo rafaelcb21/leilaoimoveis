@@ -10,6 +10,8 @@ import 'dbsqlite.dart';
 var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
 
 class FavoritoPage extends StatefulWidget {
+  FavoritoPage(this.favoritos);
+  List favoritos;
   @override
   FavoritoPageState createState() => new FavoritoPageState();
 }
@@ -40,21 +42,20 @@ class FavoritoPageState extends State<FavoritoPage> {
     super.initState();    
 
     setState(() {
-      imovelDB.getAllFavorito().then((data) {
-        this.dadosFavoritos = data;
-      });
-
-      localizacao.initPlatformState().then((data) {
-        if(data != null) {
-          for(var i in data.values) {
-          this.coordenadas.add(i);
-        }
-        this.latitude = coordenadas[1];
-        this.longitude = coordenadas[3];
-        }
-        //_mapa();
-      });        
-    });    
+      this.dadosFavoritos = widget.favoritos;
+    });
+    
+ 
+    localizacao.initPlatformState().then((data) {
+      if(data != null) {
+        for(var i in data.values) {
+        this.coordenadas.add(i);
+      }
+      this.latitude = coordenadas[1];
+      this.longitude = coordenadas[3];
+      }
+      //_mapa();
+    });     
   }
 
   String numeroBrasil(List<int> numerosLista) {
@@ -138,7 +139,7 @@ class FavoritoPageState extends State<FavoritoPage> {
         endereco + '|' +
         bairro + '|' +
         descricao + '|' +
-        id + '|' +
+        id.toString() + '|' +
         leilao + '|' +
         num_do_bem + '|' +
         uuidRandom;
@@ -148,9 +149,9 @@ class FavoritoPageState extends State<FavoritoPage> {
 
       this.listaFavoritos.add(
         new Container(
-          margin: new EdgeInsets.only(top:4.0, bottom: 4.0),
+          margin: new EdgeInsets.only(top:8.0, bottom: 8.0, left: 8.0, right: 8.0),
             decoration: new BoxDecoration(
-              color: new Color(0xFFF7941E),
+              color: Colors.white,
               borderRadius: new BorderRadius.all(const Radius.circular(3.0)),
               boxShadow: [
                 const BoxShadow(offset: const Offset(0.0, 2.0), blurRadius: 4.0, spreadRadius: -1.0, color: const Color(0x33000000)),
@@ -420,50 +421,57 @@ class FavoritoPageState extends State<FavoritoPage> {
           ),
         )
       );
+    }
 
-      this.listaFavoritos.add(
-        new InkWell(
-          onTap: () {
-            this.favorito = false;
-            _mapa();
-          },
-          child: new Container(
-            margin: new EdgeInsets.only(top:4.0, bottom: 4.0),
-            decoration: new BoxDecoration(
-              color: new Color(0xFFF7941E),
-              borderRadius: new BorderRadius.all(const Radius.circular(3.0)),
-              boxShadow: [
-                const BoxShadow(offset: const Offset(0.0, 2.0), blurRadius: 4.0, spreadRadius: -1.0, color: const Color(0x33000000)),
-                const BoxShadow(offset: const Offset(0.0, 4.0), blurRadius: 5.0, spreadRadius: 0.0, color: const Color(0x24000000)),
-                const BoxShadow(offset: const Offset(0.0, 1.0), blurRadius: 10.0, spreadRadius: 0.0, color: const Color(0x1F000000)),
-              ]
-            ),
-            child: new Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                new Container(
-                  padding: new EdgeInsets.only(top: 18.0, bottom: 18.0),
-                  child: new Text(
-                    'Mapa',
-                    style: new TextStyle(
-                      color: Colors.white,
-                      fontFamily: "Futura",
-                      fontSize: 18.0
-                    ),
+    this.listaFavoritos.add(
+      new Container(
+        margin: new EdgeInsets.all(16.0),
+      ), 
+    );
+
+    this.listaFavoritos.add(
+      new InkWell(
+        onTap: () {
+          this.favorito = false;
+          _mapa();
+        },
+        child: new Container(
+          margin: new EdgeInsets.only(top:8.0, bottom: 8.0, left: 8.0, right: 8.0),
+          decoration: new BoxDecoration(
+            color: new Color(0xFFF7941E),
+            borderRadius: new BorderRadius.all(const Radius.circular(3.0)),
+            boxShadow: [
+              const BoxShadow(offset: const Offset(0.0, 2.0), blurRadius: 4.0, spreadRadius: -1.0, color: const Color(0x33000000)),
+              const BoxShadow(offset: const Offset(0.0, 4.0), blurRadius: 5.0, spreadRadius: 0.0, color: const Color(0x24000000)),
+              const BoxShadow(offset: const Offset(0.0, 1.0), blurRadius: 10.0, spreadRadius: 0.0, color: const Color(0x1F000000)),
+            ]
+          ),
+          child: new Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              new Container(
+                padding: new EdgeInsets.only(top: 18.0, bottom: 18.0),
+                child: new Text(
+                  'Mapa',
+                  style: new TextStyle(
+                    color: Colors.white,
+                    fontFamily: "Futura",
+                    fontSize: 18.0
                   ),
-                )
-              ],
-            ),
+                ),
+              )
+            ],
           ),
         ),
-      );
+      ),
+    );
 
-      this.listaFavoritos.add(
-        new Container(
-          margin: new EdgeInsets.all(32.0),
-        )
-      );
-    }
+    this.listaFavoritos.add(
+      new Container(
+        margin: new EdgeInsets.all(32.0),
+      )
+    );
+
     return this.listaFavoritos;
   }
 
