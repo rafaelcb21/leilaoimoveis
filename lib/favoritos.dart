@@ -34,7 +34,7 @@ class FavoritoPageState extends State<FavoritoPage> {
   Uri staticMapUri;
   var staticMapProvider = new StaticMapProvider(apiKey);
   //bool mapaImovel = false;
-  bool favorito = true;
+  //bool favorito = true;
   List dadosFavoritos = [];
 
   @override
@@ -54,7 +54,6 @@ class FavoritoPageState extends State<FavoritoPage> {
       this.latitude = coordenadas[1];
       this.longitude = coordenadas[3];
       }
-      //_mapa();
     });     
   }
 
@@ -117,6 +116,9 @@ class FavoritoPageState extends State<FavoritoPage> {
     String num_do_bem = '';
     String label = '';
     String uuidRandom = '';
+    double latitude = 0.0;
+    double longitude = 0.0;
+    bool favorito = true;
 
     for(var item in data) {
       tipo = item['tipo'];
@@ -130,6 +132,8 @@ class FavoritoPageState extends State<FavoritoPage> {
       leilao = item['leilao'];
       num_do_bem = item['num_do_bem'];
       uuidRandom = item['uuid'];
+      latitude = item['latitude'];
+      longitude = item['longitude'];
 
       var info =
         tipo + '|' +
@@ -145,9 +149,11 @@ class FavoritoPageState extends State<FavoritoPage> {
         uuidRandom;
 
       this.marcadores.add(
-        new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
+        new Marker(item['id'].toString(), info, latitude, longitude, color: Colors.blue)
+      );
 
       this.listaFavoritos.add(
+        //!favorito ? new Container() :
         new Container(
           margin: new EdgeInsets.only(top:8.0, bottom: 8.0, left: 8.0, right: 8.0),
             decoration: new BoxDecoration(
@@ -167,7 +173,7 @@ class FavoritoPageState extends State<FavoritoPage> {
                   new Text(
                     'Favorito',
                     style: new TextStyle(
-                      color: this.favorito ? new Color(0xFFF7941E) : Colors.black38 ,
+                      color: new Color(0xFFF7941E),
                       fontFamily: "Futura",
                       fontSize: 16.0,
                       fontWeight: FontWeight.w700
@@ -177,19 +183,62 @@ class FavoritoPageState extends State<FavoritoPage> {
                     margin: new EdgeInsets.all(4.0),
                   ),
                   new IconButton(
-                    icon: this.favorito ? new Icon(Icons.star) : new Icon(Icons.star_border),
+                    icon: favorito ? new Icon(Icons.star) : new Icon(Icons.star_border),
                     onPressed: () {
                       setState(() {
-                        this.favorito = !this.favorito;
-                        imovelDB.getFavorito(uuidRandom).then((data) {
-                          if(data == true) {
-                            imovelDB.updateFavorito(uuidRandom, "Sim").then((result) {
-                            });
-                          } else if(data == false) {
-                            imovelDB.updateFavorito(uuidRandom, "Não").then((result) {
-                            });
-                          }
-                        });
+                        favorito = false;                                                  
+                        imovelDB.updateFavorito(uuidRandom, "Não").then((data1) {
+                          imovelDB.getAllFavorito().then((data2) {
+                            //this.listaFavoritos = [];
+                            this.marcadores = [];
+                            String tipo2 = '';
+                            String situacao2 = '';
+                            String vlr_de_avaliacao2 = '0.0';
+                            String vlr_de_venda2 = '0.0';
+                            String endereco2 = '';
+                            String bairro2 = '';
+                            String descricao2 = '';
+                            String id2 = '';
+                            String leilao2 = '';
+                            String num_do_bem2 = '';
+                            String label2 = '';
+                            String uuidRandom2 = '';
+                            double latitude2 = 0.0;
+                            double longitude2 = 0.0;
+                            for(var item2 in data2) {
+                              tipo2 = item2['tipo'];
+                              situacao2 = item2['situacao'];
+                              vlr_de_avaliacao2 = item2['vlr_de_avaliacao'];
+                              vlr_de_venda2 = item2['vlr_de_venda'];
+                              endereco2 = item2['endereco'];
+                              bairro2 = item2['bairro'];
+                              descricao2 = item2['descricao'];
+                              id2 = item2['id'];
+                              leilao2 = item2['leilao'];
+                              num_do_bem2 = item2['num_do_bem'];
+                              uuidRandom2 = item2['uuid'];
+                              latitude2 = item2['latitude'];
+                              longitude2 = item2['longitude'];
+
+                              var info2 =
+                                tipo2 + '|' +
+                                situacao2 + '|' +
+                                vlr_de_avaliacao2.toString() + '|' +
+                                vlr_de_venda2.toString() + '|' +
+                                endereco2 + '|' +
+                                bairro2 + '|' +
+                                descricao2 + '|' +
+                                id2.toString() + '|' +
+                                leilao2 + '|' +
+                                num_do_bem2 + '|' +
+                                uuidRandom2;
+
+                              this.marcadores.add(
+                                new Marker(item2['id'].toString(), info2, latitude2, longitude2, color: Colors.blue)
+                              );
+                            }
+                          });
+                        });                        
                       });
                     },
                     color: new Color(0xFFF7941E)
@@ -202,7 +251,7 @@ class FavoritoPageState extends State<FavoritoPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     new Image.network(
-                      'https://maps.googleapis.com/maps/api/streetview?size=900x400&location=' + this.latitude.toString() + "," + this.longitude.toString() + '&key=' + apiKey
+                      'https://maps.googleapis.com/maps/api/streetview?size=900x400&location=' + latitude.toString() + "," + longitude.toString() + '&key=' + apiKey
                     ),
                     new Container(
                       margin: new EdgeInsets.all(8.0),
@@ -210,9 +259,9 @@ class FavoritoPageState extends State<FavoritoPage> {
 
                     new Image.network(
                       staticMapProvider.getStaticUri(
-                        new Location(this.latitude, this.longitude),
+                        new Location(latitude, longitude),
                         16, width: 900, height: 400).toString() +
-                        "&markers=color:red|label:" + label +"|" + this.latitude.toString() + "," + this.longitude.toString()
+                        "&markers=color:red|label:" + label +"|" + latitude.toString() + "," + longitude.toString()
                     ),
                     new Container(
                       margin: new EdgeInsets.all(8.0),
@@ -432,7 +481,7 @@ class FavoritoPageState extends State<FavoritoPage> {
     this.listaFavoritos.add(
       new InkWell(
         onTap: () {
-          this.favorito = false;
+          //this.favorito = false;
           _mapa();
         },
         child: new Container(
