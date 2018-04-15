@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dbsqlite.dart';
+import 'favoritos.dart';
 
 var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
 
@@ -162,13 +163,77 @@ class MapaPageState extends State<MapaPage> {
             color: Colors.white,
             icon: new Icon(Icons.star),
             onPressed: () {
-              
+              imovelDB.getAllFavorito().then((data) {
+                Navigator.of(context).push(new PageRouteBuilder(
+                  opaque: false,
+                  pageBuilder: (BuildContext context, _, __) {
+                    return new FavoritoPage(data);
+                  },
+                  transitionsBuilder: (
+                    BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    Widget child,
+                  ) {
+                    return new SlideTransition(
+                      position: new Tween<Offset>(
+                        begin:  const Offset(1.0, 0.0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    );
+                  }
+                ));  
+              });                
             },
           )
         ],
       ),
       
-      body: !this.mapaImovel ? new Container() : new ListView(
+      body: !this.mapaImovel ? new Container(
+        margin: new EdgeInsets.only(top: 18.0, bottom: 18.0, left: 18.0, right: 18.0),
+        child: new ListView(
+          children: <Widget>[
+            new InkWell(
+              onTap: () {
+                this.favorito = false;
+                _mapa();
+              },
+              child: new Container(
+                margin: new EdgeInsets.only(top:4.0, bottom: 4.0),
+                decoration: new BoxDecoration(
+                  color: new Color(0xFFF7941E),
+                  borderRadius: new BorderRadius.all(const Radius.circular(3.0)),
+                  boxShadow: [
+                    const BoxShadow(offset: const Offset(0.0, 2.0), blurRadius: 4.0, spreadRadius: -1.0, color: _kKeyUmbraOpacity),
+                    const BoxShadow(offset: const Offset(0.0, 4.0), blurRadius: 5.0, spreadRadius: 0.0, color: _kKeyPenumbraOpacity),
+                    const BoxShadow(offset: const Offset(0.0, 1.0), blurRadius: 10.0, spreadRadius: 0.0, color: _kAmbientShadowOpacity),
+                  ]
+                ),
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    new Container(
+                      padding: new EdgeInsets.only(top: 18.0, bottom: 18.0),
+                      child: new Text(
+                        'Mapa',
+                        style: new TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Futura",
+                          fontSize: 18.0
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            new Container(
+              margin: new EdgeInsets.all(32.0),
+            )
+          ],
+        ),
+      ) : new ListView(
         key: new Key(uuid.v4()),
         children: <Widget>[
           new Row(

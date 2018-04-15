@@ -26,7 +26,7 @@ class FavoritoPageState extends State<FavoritoPage> {
   double latitude = -15.794229;
   double longitude = -47.882166;
   List coordenadas = [];
-  List listaFavoritos = [];
+  List<Widget> listaFavoritos = [];
   List<Marker> marcadores = [];
   var compositeSubscription = new CompositeSubscription();  
 
@@ -61,9 +61,22 @@ class FavoritoPageState extends State<FavoritoPage> {
 
   List<Widget> buildFavoritos(data) {
     this.marcadores = [];
-    this.listaFavoritos = [];    
+    this.listaFavoritos = [];
 
     for(var item in data) {
+      var info =
+        item['tipo'] + '|' +
+        item['situacao'] + '|' +
+        item['vlr_de_avaliacao'].toString() + '|' +
+        item['vlr_de_venda'].toString() + '|' +
+        item['endereco'] + '|' +
+        item['bairro'] + '|' +
+        item['descricao'] + '|' +
+        item['id'].toString() + '|' +
+        item['leilao'] + '|' +
+        item['num_do_bem'] + '|' +
+        item['uuid'];
+
       this.listaFavoritos.add(
         new ItemFavorito(
           key: new Key(item['uuid']),
@@ -74,17 +87,17 @@ class FavoritoPageState extends State<FavoritoPage> {
           endereco: item['endereco'],
           bairro: item['bairro'],
           descricao: item['descricao'],
-          id: item['id'],
+          id: item['id'].toString(),
           leilao: item['leilao'],
           num_do_bem: item['num_do_bem'],
           uuidRandom: item['uuid'],
           latitude: item['latitude'],
           longitude: item['longitude'],
           onPressed: () {
-            setState(() {
-              imovelDB.updateFavorito(item['uuid'], "Não").then((data1) {
-                imovelDB.getAllFavorito().then((data) {
-                  this.dadosFavoritos = data;                  
+            imovelDB.updateFavorito(item['uuid'], "Não").then((data1) {
+              imovelDB.getAllFavorito().then((data) {
+                setState(() {
+                  this.dadosFavoritos = data;
                   this.marcadores = [];
                   String tipo = '';
                   String situacao = '';
@@ -108,14 +121,14 @@ class FavoritoPageState extends State<FavoritoPage> {
                     endereco = item2['endereco'];
                     bairro = item2['bairro'];
                     descricao = item2['descricao'];
-                    id = item2['id'];
+                    id = item2['id'].toString();
                     leilao = item2['leilao'];
                     num_do_bem = item2['num_do_bem'];
                     uuidRandom = item2['uuid'];
                     latitude = item2['latitude'];
                     longitude = item2['longitude'];
 
-                    var info =
+                    var info2 =
                       tipo + '|' +
                       situacao + '|' +
                       vlr_de_avaliacao.toString() + '|' +
@@ -129,7 +142,7 @@ class FavoritoPageState extends State<FavoritoPage> {
                       uuidRandom;
 
                     this.marcadores.add(
-                      new Marker(item2['id'].toString(), info, latitude, longitude, color: Colors.blue)
+                      new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
                     );
                   }
                 });
@@ -137,6 +150,9 @@ class FavoritoPageState extends State<FavoritoPage> {
             });
           },
         )
+      );
+      this.marcadores.add(
+        new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: Colors.blue)
       );
     }
 
@@ -373,7 +389,7 @@ class ItemFavoritoState extends State<ItemFavorito> {
 
   @override
   Widget build(BuildContext context) {
-    new Container(
+    return new Container(
       margin: new EdgeInsets.only(top:8.0, bottom: 8.0, left: 8.0, right: 8.0),
         decoration: new BoxDecoration(
           color: Colors.white,
