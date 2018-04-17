@@ -13,6 +13,7 @@ import 'querys.dart';
 import 'localizacao.dart';
 import 'dbsqlite.dart';
 import 'favoritos.dart';
+import 'help.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -524,6 +525,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: false,
               labelText: 'Estado *',
               valueText: this.valueTextEstado,
               valueStyle: valueStyle,
@@ -544,6 +546,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: false,
               labelText: 'Cidade *',
               valueText: this.valueTextCidade,
               valueStyle: valueStyle,
@@ -567,6 +570,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: true,
               labelText: 'Tipo de Leilão',
               valueText: this.valueTextTipoLeilao,
               valueStyle: valueStyle,
@@ -584,12 +588,35 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                   this.valueTextTipoLeilao = ' ';
                   this.formSubmit['tipoleilao'] = ' ';
                 });
-              }
+              },
+              onPressed3: () {
+                Navigator.of(context).push(new PageRouteBuilder(
+                  opaque: false,
+                  pageBuilder: (BuildContext context, _, __) {
+                    return new HelpPage();
+                  },
+                  transitionsBuilder: (
+                    BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    Widget child,
+                  ) {
+                    return new SlideTransition(
+                      position: new Tween<Offset>(
+                        begin:  const Offset(1.0, 0.0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    );
+                  }
+                )); 
+              },
             ),
           ),
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: false,
               labelText: 'Aberto para proposta',
               valueText: this.valueTextProposta,
               valueStyle: valueStyle,
@@ -613,6 +640,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: false,
               labelText: 'Tipo de Imóvel',
               valueText: this.valueTextTipo,
               valueStyle: valueStyle,
@@ -636,6 +664,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: false,
               labelText: 'Valor Mínimo de Venda',
               valueText: this.valueTextVMVenda,
               valueStyle: valueStyle,
@@ -656,6 +685,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: false,
               labelText: 'Valor Máximo de Avaliação',
               valueText: this.valueTextVMAvaliacao,
               valueStyle: valueStyle,
@@ -676,6 +706,7 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
           new Container(
             margin: new EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
             child: new InputDropdown3(
+              help: false,
               labelText: 'Situação',
               valueText: this.valueOcupadoDesocupado,
               valueStyle: valueStyle,
@@ -813,14 +844,18 @@ class InputDropdown3 extends StatelessWidget {
     this.valueText,
     this.valueStyle,
     this.onPressed,
-    this.onPressed2 }) : super(key: key);
+    this.onPressed2,
+    this.onPressed3,
+    this.help}) : super(key: key);
  
   final String labelText;
   final String valueText;
   final TextStyle valueStyle;
   final VoidCallback onPressed;
   final VoidCallback onPressed2;
+  final VoidCallback onPressed3;
   final Widget child;
+  final bool help;
  
   @override
   Widget build(BuildContext context) {
@@ -842,7 +877,35 @@ class InputDropdown3 extends StatelessWidget {
               ],
             ),
           ),
-          valueText == " " ? new Container() :
+          valueText == " " ? 
+          new Positioned.fill(
+            child: new Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                !this.help ? new Container() : new Container(
+                  child: new GestureDetector(
+                    onTap: onPressed3,
+                    child: new Container(
+                      margin: new EdgeInsets.only(top: 12.0),
+                      child: new Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          new Container(
+                            margin: new EdgeInsets.only(top: 8.0, bottom: 8.0, left: 8.0),
+                            child: new Icon(
+                              Icons.help,
+                              size: 18.0,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                        ],
+                      )
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ) :
           new Positioned.fill(
             child: new Row(
               mainAxisAlignment: MainAxisAlignment.end,
