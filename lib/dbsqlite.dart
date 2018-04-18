@@ -37,7 +37,9 @@ class DatabaseClient {
           descricao TEXT NOT NULL,
           num_do_bem TEXT NOT NULL,
           leilao TEXT NOT NULL,
-          favorito TEXT NOT NULL
+          favorito TEXT NOT NULL,
+          caucao TEXT NOT NULL,
+          maisinfo TEXT NOT NULL
         )
       """
     );
@@ -123,13 +125,16 @@ class Imovel {
   String num_do_bem;
   String leilao;
   String favorito;
+  String caucao;
+  String maisinfo;
 
   String imovelTable = "imovel";
 
   static final columns = ["id", "longitude", "tipo", "situacao", "data_inicio_proposta", 
     "vlr_de_venda", "endereco", "tipo_leilao", "vlr_de_avaliacao",
     "estado", "id_no_leilao",  "versao", "latitude", "data_termino_proposta",
-    "cidade", "bairro", "uuid", "descricao", "num_do_bem", "leilao", "favorito"
+    "cidade", "bairro", "uuid", "descricao", "num_do_bem", "leilao", "favorito",
+    "caucao", "maisinfo"
   ];
 
   Map toMap() {
@@ -154,7 +159,9 @@ class Imovel {
       "descricao": descricao,
       "num_do_bem": num_do_bem,
       "leilao": leilao,
-      "favorito":favorito,
+      "favorito": favorito,
+      "caucao": caucao,
+      "maisinfo": maisinfo
     };
 
     if (id != null) { map["id"] = id; }
@@ -185,6 +192,8 @@ class Imovel {
     imovelTable.num_do_bem = map["num_do_bem"];
     imovelTable.leilao = map["leilao"];
     imovelTable.favorito = map["favorito"];
+    imovelTable.caucao = map["caucao"];
+    imovelTable.maisinfo = map["maisinfo"];
     return imovelTable;
   }
 
@@ -257,6 +266,8 @@ class Imovel {
       String num_do_bem = i['num_do_bem'];
       String leilao = i['leilao'];
       String favorito = i['favorito'];
+      String caucao = i['caucao'];
+      String maisinfo = i['maisinfo'];
 
       await db.rawInsert('''
         INSERT INTO imovel (
@@ -279,14 +290,16 @@ class Imovel {
           descricao,
           num_do_bem,
           leilao,
-          favorito        
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Não')
+          favorito,
+          caucao,
+          maisinfo
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Não', ?, ?)
       ''', 
         [
           longitude, tipo, situacao, data_inicio_proposta,
           vlr_de_venda, endereco, tipo_leilao, vlr_de_avaliacao,
           estado, id_no_leilao, versao, latitude, data_termino_proposta,
-          cidade, bairro, uuid, descricao, num_do_bem, leilao
+          cidade, bairro, uuid, descricao, num_do_bem, leilao, caucao, maisinfo
         ]
       );
 

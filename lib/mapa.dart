@@ -40,11 +40,13 @@ class MapaPageState extends State<MapaPage> {
   String endereco = '';
   String bairro = '';
   String descricao = '';
-  String id = '';
+  String id = '0;0';
   String leilao = '';
   String num_do_bem = '';
   String label = '';
   String uuidRandom = '';
+  String caucao = '0.0';
+  String maisinfo = '';
   Uri staticMapUri;
   var staticMapProvider = new StaticMapProvider(apiKey);
   bool mapaImovel = false;
@@ -72,6 +74,8 @@ class MapaPageState extends State<MapaPage> {
       this.num_do_bem = item['num_do_bem'];
       this.tipo = item['tipo'];
       this.uuidRandom = item['uuid'];
+      this.caucao = item['caucao'];
+      this.maisinfo = item['maisinfo'];
 
       var info =
         this.tipo + '|' +
@@ -84,7 +88,7 @@ class MapaPageState extends State<MapaPage> {
         this.id + '|' +
         this.leilao + '|' +
         this.num_do_bem + '|' +
-        this.uuidRandom;
+        this.uuidRandom + '|' + this.caucao + '|' + this.maisinfo;
 
       this.marcadores.add(
         new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
@@ -375,6 +379,26 @@ class MapaPageState extends State<MapaPage> {
                 ),
 
                 new Text(
+                  'Caução',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  prepararNumeroBrasil(this.caucao.toString()),
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
                   'Endereço',
                   style: new TextStyle(
                     color: this.azulCeleste,
@@ -488,6 +512,26 @@ class MapaPageState extends State<MapaPage> {
                   }),
                 ),
                 new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Mais informação',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.maisinfo,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),               
+                new Container(
                   margin: new EdgeInsets.all(16.0),
                 ),
 
@@ -582,6 +626,8 @@ class MapaPageState extends State<MapaPage> {
       this.leilao = informacao[8];
       this.num_do_bem = informacao[9];
       this.uuidRandom = informacao[10];
+      this.caucao = informacao[11];
+      this.maisinfo = informacao[12];
 
       imovelDB.getFavorito(this.uuidRandom).then((data) {
         if(data == true) {

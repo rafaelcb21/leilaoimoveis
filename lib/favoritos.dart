@@ -75,7 +75,9 @@ class FavoritoPageState extends State<FavoritoPage> {
         item['id'].toString() + '|' +
         item['leilao'] + '|' +
         item['num_do_bem'] + '|' +
-        item['uuid'];
+        item['uuid'] + '|' +
+        item['caucao'] + '|' +
+        item["maisinfo"];
 
       this.listaFavoritos.add(
         new ItemFavorito(
@@ -93,6 +95,8 @@ class FavoritoPageState extends State<FavoritoPage> {
           uuidRandom: item['uuid'],
           latitude: item['latitude'],
           longitude: item['longitude'],
+          caucao: item['caucao'],
+          maisinfo: item['maisinfo'],
           onPressed: () {
             imovelDB.updateFavorito(item['uuid'], "Não").then((data1) {
               imovelDB.getAllFavorito().then((data) {
@@ -112,6 +116,8 @@ class FavoritoPageState extends State<FavoritoPage> {
                   String uuidRandom = '';
                   double latitude = 0.0;
                   double longitude = 0.0;
+                  String caucao = '0.0';
+                  String maisinfo = '';
 
                   for(var item2 in data) {
                     tipo = item2['tipo'];
@@ -127,6 +133,8 @@ class FavoritoPageState extends State<FavoritoPage> {
                     uuidRandom = item2['uuid'];
                     latitude = item2['latitude'];
                     longitude = item2['longitude'];
+                    caucao = item2['caucao'];
+                    maisinfo = item2['maisinfo'];
 
                     var info2 =
                       tipo + '|' +
@@ -139,7 +147,9 @@ class FavoritoPageState extends State<FavoritoPage> {
                       id.toString() + '|' +
                       leilao + '|' +
                       num_do_bem + '|' +
-                      uuidRandom;
+                      uuidRandom + '|' +
+                      caucao + '|' +
+                      maisinfo;
 
                     this.marcadores.add(
                       new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
@@ -309,6 +319,8 @@ class ItemFavorito extends StatefulWidget {
   final String uuidRandom;
   final double latitude;
   final double longitude;
+  final String caucao;
+  final String maisinfo;
   final VoidCallback onPressed;
 
   ItemFavorito({
@@ -326,6 +338,8 @@ class ItemFavorito extends StatefulWidget {
     this.uuidRandom,
     this.latitude,
     this.longitude,
+    this.caucao,
+    this.maisinfo,
     this.onPressed}) : super(key: key);
 
   @override
@@ -527,6 +541,26 @@ class ItemFavoritoState extends State<ItemFavorito> {
                 ),
 
                 new Text(
+                  'Caução',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  prepararNumeroBrasil(widget.caucao.toString()),
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
                   'Endereço',
                   style: new TextStyle(
                     color: this.azulCeleste,
@@ -639,6 +673,26 @@ class ItemFavoritoState extends State<ItemFavorito> {
                     _launched = _launchInBrowser('http://www1.caixa.gov.br/editais/'+widget.leilao+'.PDF');
                   }),
                 ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Mais informação',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  widget.maisinfo,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),               
                 new Container(
                   margin: new EdgeInsets.all(16.0),
                 ),
