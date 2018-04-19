@@ -39,7 +39,8 @@ class DatabaseClient {
           leilao TEXT NOT NULL,
           favorito TEXT NOT NULL,
           caucao TEXT NOT NULL,
-          maisinfo TEXT NOT NULL
+          maisinfo TEXT NOT NULL,
+          vendido TEXT NOT NULL
         )
       """
     );
@@ -127,6 +128,7 @@ class Imovel {
   String favorito;
   String caucao;
   String maisinfo;
+  String vendido;
 
   String imovelTable = "imovel";
 
@@ -134,7 +136,7 @@ class Imovel {
     "vlr_de_venda", "endereco", "tipo_leilao", "vlr_de_avaliacao",
     "estado", "id_no_leilao",  "versao", "latitude", "data_termino_proposta",
     "cidade", "bairro", "uuid", "descricao", "num_do_bem", "leilao", "favorito",
-    "caucao", "maisinfo"
+    "caucao", "maisinfo", "vendido"
   ];
 
   Map toMap() {
@@ -161,7 +163,8 @@ class Imovel {
       "leilao": leilao,
       "favorito": favorito,
       "caucao": caucao,
-      "maisinfo": maisinfo
+      "maisinfo": maisinfo,
+      "vendido": vendido
     };
 
     if (id != null) { map["id"] = id; }
@@ -194,6 +197,7 @@ class Imovel {
     imovelTable.favorito = map["favorito"];
     imovelTable.caucao = map["caucao"];
     imovelTable.maisinfo = map["maisinfo"];
+    imovelTable.vendido = map["vendido"];
     return imovelTable;
   }
 
@@ -268,6 +272,7 @@ class Imovel {
       String favorito = i['favorito'];
       String caucao = i['caucao'];
       String maisinfo = i['maisinfo'];
+      String vendido = i['vendido'];
 
       await db.rawInsert('''
         INSERT INTO imovel (
@@ -292,14 +297,16 @@ class Imovel {
           leilao,
           favorito,
           caucao,
-          maisinfo
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Não', ?, ?)
+          maisinfo,
+          vendido
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Não', ?, ?, ?)
       ''', 
         [
           longitude, tipo, situacao, data_inicio_proposta,
           vlr_de_venda, endereco, tipo_leilao, vlr_de_avaliacao,
           estado, id_no_leilao, versao, latitude, data_termino_proposta,
-          cidade, bairro, uuid, descricao, num_do_bem, leilao, caucao, maisinfo
+          cidade, bairro, uuid, descricao, num_do_bem, leilao, caucao, maisinfo,
+          vendido
         ]
       );
 

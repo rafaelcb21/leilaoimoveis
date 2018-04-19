@@ -77,7 +77,8 @@ class FavoritoPageState extends State<FavoritoPage> {
         item['num_do_bem'] + '|' +
         item['uuid'] + '|' +
         item['caucao'] + '|' +
-        item["maisinfo"];
+        item["maisinfo"] + '|' +
+        item["vendido"];
 
       this.listaFavoritos.add(
         new ItemFavorito(
@@ -97,6 +98,7 @@ class FavoritoPageState extends State<FavoritoPage> {
           longitude: item['longitude'],
           caucao: item['caucao'],
           maisinfo: item['maisinfo'],
+          vendido: item['vendido'],
           onPressed: () {
             imovelDB.updateFavorito(item['uuid'], "Não").then((data1) {
               imovelDB.getAllFavorito().then((data) {
@@ -118,6 +120,7 @@ class FavoritoPageState extends State<FavoritoPage> {
                   double longitude = 0.0;
                   String caucao = '0.0';
                   String maisinfo = '';
+                  String vendido = '';
 
                   for(var item2 in data) {
                     tipo = item2['tipo'];
@@ -135,6 +138,7 @@ class FavoritoPageState extends State<FavoritoPage> {
                     longitude = item2['longitude'];
                     caucao = item2['caucao'];
                     maisinfo = item2['maisinfo'];
+                    vendido = item2['vendido'];
 
                     var info2 =
                       tipo + '|' +
@@ -149,11 +153,18 @@ class FavoritoPageState extends State<FavoritoPage> {
                       num_do_bem + '|' +
                       uuidRandom + '|' +
                       caucao + '|' +
-                      maisinfo;
+                      maisinfo + '|' +
+                      vendido;
 
-                    this.marcadores.add(
-                      new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
-                    );
+                    if(vendido == 'Não') {
+                      this.marcadores.add(
+                        new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
+                      );
+                    } else {
+                      this.marcadores.add(
+                        new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.red)
+                      );
+                    }
                   }
                 });
               });
@@ -161,9 +172,16 @@ class FavoritoPageState extends State<FavoritoPage> {
           },
         )
       );
-      this.marcadores.add(
-        new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: Colors.blue)
-      );
+
+      if(item['vendido'] == 'Não') {
+        this.marcadores.add(
+          new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: Colors.blue)
+        );
+      } else {
+        this.marcadores.add(
+          new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: Colors.red)
+        );
+      }      
     }
 
     this.listaFavoritos.add(
@@ -321,6 +339,7 @@ class ItemFavorito extends StatefulWidget {
   final double longitude;
   final String caucao;
   final String maisinfo;
+  final String vendido;
   final VoidCallback onPressed;
 
   ItemFavorito({
@@ -340,6 +359,7 @@ class ItemFavorito extends StatefulWidget {
     this.longitude,
     this.caucao,
     this.maisinfo,
+    this.vendido,
     this.onPressed}) : super(key: key);
 
   @override
@@ -491,6 +511,26 @@ class ItemFavoritoState extends State<ItemFavorito> {
                 ),
                 new Text(
                   widget.situacao,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Vendido',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  widget.vendido,
                   style: new TextStyle(
                     fontFamily: "Futura",
                     fontSize: 16.0,

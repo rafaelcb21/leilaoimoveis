@@ -47,6 +47,7 @@ class MapaPageState extends State<MapaPage> {
   String uuidRandom = '';
   String caucao = '0.0';
   String maisinfo = '';
+  String vendido = '';
   Uri staticMapUri;
   var staticMapProvider = new StaticMapProvider(apiKey);
   bool mapaImovel = false;
@@ -76,6 +77,7 @@ class MapaPageState extends State<MapaPage> {
       this.uuidRandom = item['uuid'];
       this.caucao = item['caucao'];
       this.maisinfo = item['maisinfo'];
+      this.vendido = item['vendido'];
 
       var info =
         this.tipo + '|' +
@@ -88,10 +90,21 @@ class MapaPageState extends State<MapaPage> {
         this.id + '|' +
         this.leilao + '|' +
         this.num_do_bem + '|' +
-        this.uuidRandom + '|' + this.caucao + '|' + this.maisinfo;
+        this.uuidRandom + '|' +
+        this.caucao + '|' +
+        this.maisinfo + '|' +
+        this.vendido;
 
-      this.marcadores.add(
-        new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue));
+      if(this.vendido == 'Não') {
+        this.marcadores.add(
+          new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue)
+        );
+      } else {
+        this.marcadores.add(
+          new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.red)
+        );
+      }
+      
     }
 
     localizacao.initPlatformState().then((data) {
@@ -329,6 +342,26 @@ class MapaPageState extends State<MapaPage> {
                 ),
                 new Text(
                   this.situacao,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Vendido',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.vendido,
                   style: new TextStyle(
                     fontFamily: "Futura",
                     fontSize: 16.0,
@@ -628,6 +661,7 @@ class MapaPageState extends State<MapaPage> {
       this.uuidRandom = informacao[10];
       this.caucao = informacao[11];
       this.maisinfo = informacao[12];
+      this.vendido = informacao[13];
 
       imovelDB.getFavorito(this.uuidRandom).then((data) {
         if(data == true) {
