@@ -158,7 +158,7 @@ class FavoritoPageState extends State<FavoritoPage> {
 
                     if(vendido == 'Não') {
                       this.marcadores.add(
-                        new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
+                        new Marker(item2['id'].toString(), info2, latitude, longitude, color: new Color(0xFFF7941E))
                       );
                     } else {
                       this.marcadores.add(
@@ -175,7 +175,7 @@ class FavoritoPageState extends State<FavoritoPage> {
 
       if(item['vendido'] == 'Não') {
         this.marcadores.add(
-          new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: Colors.blue)
+          new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: new Color(0xFFF7941E))
         );
       } else {
         this.marcadores.add(

@@ -59,7 +59,7 @@ class Queryes {
     String estadoForm = formSubmit['estado'];
     String cidadeForm = formSubmit['cidade'];
 
-    for(var item in fileContent) {      
+    for(var item in fileContent) {
       String estadoFB = item['estado'];
       String cidadeFB = item['cidade'];
       String dataInicioProposta = item['data_inicio_proposta'];
