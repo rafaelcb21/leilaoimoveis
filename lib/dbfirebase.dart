@@ -16,7 +16,7 @@ class FirebaseDB {
   //  return completer.future;
   //}
 
-  static Future<Imoveis> getImoveis() async {
+  static Future<Imoveis> getImoveisFB() async {
     Completer<Imoveis> completer = new Completer<Imoveis>();
     FirebaseDatabase.instance
         .reference()

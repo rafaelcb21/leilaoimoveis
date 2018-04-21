@@ -14,6 +14,9 @@ import 'localizacao.dart';
 import 'dbsqlite.dart';
 import 'favoritos.dart';
 import 'help.dart';
+import 'dart:async';
+import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 //https://marcinszalek.pl/flutter/firebase-database-flutter-weighttracker/
 //https://github.com/MSzalek-Mobile/weight_tracker/tree/v0.3
@@ -94,6 +97,24 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
   List listaCidade = [];
   List allRealState = [];
 
+  List<Marker> marcadores = [];
+  var compositeSubscription = new CompositeSubscription();
+  var staticMapProvider = new StaticMapProvider(apiKey);
+  MapView mapView = new MapView();
+  Localizacao localizacao = new Localizacao();
+  double latitude = -15.794229;
+  double longitude = -47.882166;
+  List coordenadas = [];  
+  String uuidRandom = '';
+  String caucao = '0.0';
+  String maisinfo = '';
+  String vendido = '';
+  String favoritoInit = '';
+  String label = '';
+  bool mapaImovel = false;
+  bool favorito = false;
+  var uuid = new Uuid();
+
   //File jsonFile;
   //Directory dir;
   //String fileName = "db.json";
@@ -161,6 +182,28 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
       x.add([item, azul]);
     }
     return x;
+  }
+
+  String prepararNumeroBrasil(String item) {
+    List numerosInt = [];
+    List numerosString = item.split('');    
+    for(var i in numerosString) {                
+      if(i != '.') {
+        numerosInt.add(int.parse(i));
+      }
+    }
+    String numerosBrasileirados = 'R\$ ' + numeroBrasil(numerosInt);
+    return numerosBrasileirados;
+  }
+
+  Future<Null> _launched;
+
+  Future<Null> _launchInBrowser(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);//, forceSafariVC: false, forceWebView: false);
+    } else {
+      throw 'Erro em abrir o Edital';
+    }
   }
 
   String numeroBrasil(List<int> numerosLista){
@@ -284,18 +327,24 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
 
     this.formSubmit['proposta'] = this.proposta[0][0]; // Sim
 
-    FirebaseDB.getImoveis().then((dataImoveis) async {
-      this.allRealState = dataImoveis.imoveis;
+    FirebaseDB.getImoveisFB().then((dataImoveis) async {      
       int versionFirebase = int.parse(dataImoveis.imoveis[0]['versao']);
       versaoDB.getVersao().then(
         (data) {
           if(versionFirebase > data) {
             imovelDB.deleteImoveisVersion().then((data) {
               versaoDB.insertVersao(versionFirebase);
-              imovelDB.insertImoveis(dataImoveis.imoveis);
+              imovelDB.insertImoveis(dataImoveis.imoveis).then((resultado) {
+                imovelDB.insertFavoritoNovamente().then((imoveisBanco) {
+                  this.allRealState = imoveisBanco;
+                });
+              });
               criandoListasForm(dataImoveis.imoveis);
             });
           } else if(versionFirebase == data) {
+            imovelDB.getImoveis().then((imoveisBanco) {
+              this.allRealState = imoveisBanco;
+            });
             criandoListasForm(dataImoveis.imoveis);
           }
         }
@@ -477,7 +526,55 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
       appBar: new AppBar(
         title: new Text('Imóveis da Caixa'),
         backgroundColor: this.azul,
-        actions: <Widget>[
+        leading: this.mapaImovel ?
+          new GestureDetector(
+            onTap: () {
+              _mapa();
+            },
+            child: new Icon(Icons.arrow_back)
+          ) : new Icon(Icons.home),
+        actions: this.mapaImovel ?
+          <Widget>[
+            new IconButton(
+              color: Colors.white,
+              icon: new Icon(Icons.home),
+              onPressed: () {
+                setState(() {
+                  this.mapaImovel = false;
+                });                
+              },
+            ),
+            new IconButton(
+              color: Colors.white,
+              icon: new Icon(Icons.star),
+              onPressed: () {
+                imovelDB.getAllFavorito().then((data) async {
+                  List imoveisDosFavaoritos = await Navigator.of(context).push(new PageRouteBuilder(
+                    opaque: false,
+                    pageBuilder: (BuildContext context, _, __) {
+                      return new FavoritoPage(data);
+                    },
+                    transitionsBuilder: (
+                      BuildContext context,
+                      Animation<double> animation,
+                      Animation<double> secondaryAnimation,
+                      Widget child,
+                    ) {
+                      return new SlideTransition(
+                        position: new Tween<Offset>(
+                          begin:  const Offset(1.0, 0.0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      );
+                    }
+                  ));
+                  this.allRealState = imoveisDosFavaoritos;
+                });
+              },
+            )
+          ] :
+          <Widget>[
           new IconButton(
             color: Colors.white,
             icon: new Icon(Icons.star),
@@ -502,13 +599,13 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                       child: child,
                     );
                   }
-                ));  
-              });                
+                ));
+              });
             },
           )
         ],
       ),
-      body: new ListView(
+      body: !this.mapaImovel ? new ListView(
         children: <Widget>[
           new Container(
             margin: new EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0, bottom: 8.0),
@@ -740,27 +837,10 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
                 onTap: () {
                   if(this.formSubmit['estado'] != ' ' && this.formSubmit['cidade'] != ' ') {
                     Queryes queryResult = new Queryes();
-                    List resultado = queryResult.resultadoQuery(this.formSubmit, this.allRealState);
-                    Navigator.of(context).push(new PageRouteBuilder(
-                      opaque: false,
-                      pageBuilder: (BuildContext context, _, __) {
-                        return new MapaPage(resultado);
-                      },
-                      transitionsBuilder: (
-                        BuildContext context,
-                        Animation<double> animation,
-                        Animation<double> secondaryAnimation,
-                        Widget child,
-                      ) {
-                        return new SlideTransition(
-                          position: new Tween<Offset>(
-                            begin:  const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        );
-                      }
-                    ));
+                    setState(() {
+                      List resultado = queryResult.resultadoQuery(this.formSubmit, this.allRealState);
+                      marker(resultado, true);
+                    });                    
                   } else {
                     showErroDialog<String>(
                       context: context,
@@ -831,10 +911,574 @@ class _LeilaoImoveisPageState extends State<LeilaoImoveisPage> {
             ],
           ),
         ],
+      ) :
+      
+      new ListView(
+        key: new Key(uuid.v4()),
+        children: <Widget>[
+          new Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              new Text(
+                'Favorito',
+                style: new TextStyle(
+                  color: this.favorito ? new Color(0xFFF7941E) : Colors.black38 ,
+                  fontFamily: "Futura",
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w700
+                ),
+              ),
+              new Container(
+                margin: new EdgeInsets.all(4.0),
+              ),
+              new IconButton(
+                icon: this.favorito ? new Icon(Icons.star) : new Icon(Icons.star_border),
+                onPressed: () {
+                  setState(() {
+                    this.favorito = !this.favorito;
+                    imovelDB.getFavorito(this.uuidRandom).then((data) {
+                      if(data == true) {
+                        imovelDB.updateFavorito(this.uuidRandom, this.id, "Sim").then((result) {
+                          this.allRealState = result;
+                          marker(result, false);
+                        });
+                      } else if(data == false) {
+                        imovelDB.updateFavorito(this.uuidRandom, this.id, "Não").then((result) {
+                          this.allRealState = result;
+                          marker(result, false);
+                        });
+                      }                      
+                    });
+                  });
+                },
+                color: new Color(0xFFF7941E)
+              ),
+            ],
+          ),
+
+          new Container(
+            margin: new EdgeInsets.only(top: 0.0, bottom: 18.0, left: 18.0, right: 18.0),
+            child: new Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                new Image.network(
+                  'https://maps.googleapis.com/maps/api/streetview?size=900x400&location=' + this.latitude.toString() + "," + this.longitude.toString() + '&key=' + apiKey
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Image.network(
+                  staticMapProvider.getStaticUri(
+                    new Location(this.latitude, this.longitude),
+                    16, width: 900, height: 400).toString() +
+                    "&markers=color:red|label:" + this.label +"|" + this.latitude.toString() + "," + this.longitude.toString()
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Tipo de Imóvel',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.tipo,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Situação',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.situacao,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Vendido',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.vendido,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Valor Mínimo de Venda',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  prepararNumeroBrasil(this.vlr_de_venda.toString()),
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Valor Máximo de Avaliação',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  prepararNumeroBrasil(this.vlr_de_avaliacao.toString()),
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Caução',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  prepararNumeroBrasil(this.caucao.toString()),
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Endereço',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.endereco,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Bairro',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.bairro,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Descrição do Imóvel',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.descricao,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Código do leilão',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.leilao,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Numero do imóvel no leilão',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.num_do_bem,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new InkWell(
+                  child: new Text(
+                    "Edital",
+                    style: new TextStyle(
+                      color: this.azulCeleste,
+                      fontFamily: "Futura",
+                      fontSize: 18.0,
+                    ),
+                  ),
+                  onTap: () => setState(() {
+                    _launched = _launchInBrowser('http://www1.caixa.gov.br/editais/'+this.leilao+'.PDF');
+                  }),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(8.0),
+                ),
+
+                new Text(
+                  'Mais informação',
+                  style: new TextStyle(
+                    color: this.azulCeleste,
+                    fontFamily: "Futura",
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w700
+                  ),
+                ),
+                new Text(
+                  this.maisinfo,
+                  style: new TextStyle(
+                    fontFamily: "Futura",
+                    fontSize: 16.0,
+                  ),
+                ),               
+                new Container(
+                  margin: new EdgeInsets.all(16.0),
+                ),
+
+                new InkWell(
+                  onTap: () {
+                    setState(() {
+                      this.favorito = false;
+                      _mapa();
+                    });                    
+                  },
+                  child: new Container(
+                    margin: new EdgeInsets.only(top:4.0, bottom: 4.0),
+                    decoration: new BoxDecoration(
+                      color: new Color(0xFFF7941E),
+                      borderRadius: new BorderRadius.all(const Radius.circular(3.0)),
+                      boxShadow: [
+                        const BoxShadow(offset: const Offset(0.0, 2.0), blurRadius: 4.0, spreadRadius: -1.0, color: _kKeyUmbraOpacity),
+                        const BoxShadow(offset: const Offset(0.0, 4.0), blurRadius: 5.0, spreadRadius: 0.0, color: _kKeyPenumbraOpacity),
+                        const BoxShadow(offset: const Offset(0.0, 1.0), blurRadius: 10.0, spreadRadius: 0.0, color: _kAmbientShadowOpacity),
+                      ]
+                    ),
+                    child: new Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        new Container(
+                          padding: new EdgeInsets.only(top: 18.0, bottom: 18.0),
+                          child: new Text(
+                            'Mapa',
+                            style: new TextStyle(
+                              color: Colors.white,
+                              fontFamily: "Futura",
+                              fontSize: 18.0
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                new Container(
+                  margin: new EdgeInsets.all(32.0),
+                )
+              ],
+            ),
+          )
+        ],
       )
+
     );
   }
+
+//////////////////////////////////
+  
+
+  Future _mapa() async {
+    //1. Show the map
+    mapView.show(
+      new MapOptions(
+        showUserLocation: true,
+        title: "Imóveis de leilão",
+        initialCameraPosition: new CameraPosition(new Location(this.latitude, this.longitude), 18.0)),
+          toolbarActions: <ToolbarAction>[new ToolbarAction("Fechar", 1)]
+    );
+
+    var sub = mapView.onMapReady.listen((_) {
+      mapView.setMarkers(this.marcadores);
+      mapView.zoomToFit(padding: 100);
+    });
+    compositeSubscription.add(sub);
+
+    sub = mapView.onTouchAnnotation.listen((annotation) {
+      _handleDismiss(annotation);
+      
+    });
+    compositeSubscription.add(sub);
+
+    sub = mapView.onToolbarAction.listen((id) {
+      if (id == 1) {
+        mapView.dismiss();
+        setState(() {
+          this.mapaImovel = false;
+        });
+      }
+    });
+    compositeSubscription.add(sub);
+   
+  }
+
+  _handleDismiss(annotation) {
+    setState(() {
+      List informacao = annotation.title.split('|');
+
+      this.tipo = informacao[0];
+      this.situacao = informacao[1];
+      this.vlr_de_avaliacao = informacao[2];
+      this.vlr_de_venda = informacao[3];
+      this.endereco = informacao[4];
+      this.bairro = informacao[5];
+      this.descricao = informacao[6];
+      this.id = informacao[7];
+      this.leilao = informacao[8];
+      this.num_do_bem = informacao[9];
+      this.uuidRandom = informacao[10];
+      this.caucao = informacao[11];
+      this.maisinfo = informacao[12];
+      this.vendido = informacao[13];
+      
+
+      imovelDB.getFavorito(this.uuidRandom).then((data) {
+        if(data == true) {
+          this.favorito = false;
+          
+        } else if(data == false) {
+          this.favorito = true;          
+        }        
+      });
+      
+
+      this.latitude = annotation.latitude;
+      this.longitude = annotation.longitude;
+
+      this.label = this.tipo[0];
+      this.mapaImovel = true;
+
+    });
+
+    mapView.dismiss();
+    compositeSubscription.cancel();
+  }
+
+  void marker(data, mostrarMapa) {
+    this.marcadores = [];
+    String tipo = '';
+    String situacao = '';
+    String vlr_de_avaliacao = '0.0';
+    String vlr_de_venda = '0.0';
+    String endereco = '';
+    String bairro = '';
+    String descricao = '';
+    String id = '';
+    String leilao = '';
+    String num_do_bem = '';
+    String uuidRandom = '';
+    double latitude = 0.0;
+    double longitude = 0.0;
+    String caucao = '0.0';
+    String maisinfo = '';
+    String vendido = '';
+    String favorito = '';
+
+    for(var item2 in data) {
+      tipo = item2['tipo'];
+      situacao = item2['situacao'];
+      vlr_de_avaliacao = item2['vlr_de_avaliacao'];
+      vlr_de_venda = item2['vlr_de_venda'];
+      endereco = item2['endereco'];
+      bairro = item2['bairro'];
+      descricao = item2['descricao'];
+      id = item2['id'].toString();
+      leilao = item2['leilao'];
+      num_do_bem = item2['num_do_bem'];
+      uuidRandom = item2['uuid'];
+      latitude = item2['latitude'];
+      longitude = item2['longitude'];
+      caucao = item2['caucao'];
+      maisinfo = item2['maisinfo'];
+      vendido = item2['vendido'];
+      favorito = item2['favorito'];
+
+      var info2 =
+        tipo + '|' +
+        situacao + '|' +
+        vlr_de_avaliacao.toString() + '|' +
+        vlr_de_venda.toString() + '|' +
+        endereco + '|' +
+        bairro + '|' +
+        descricao + '|' +
+        id.toString() + '|' +
+        leilao + '|' +
+        num_do_bem + '|' +
+        uuidRandom + '|' +
+        caucao + '|' +
+        maisinfo + '|' +
+        vendido;
+
+      if(favorito == 'Sim') {
+        this.marcadores.add(
+          new Marker(item2['id'].toString(), info2, latitude, longitude, color: new Color(0xFFF7941E))
+        );
+      } else if(vendido == 'Sim' && favorito == 'Não') {
+        this.marcadores.add(
+          new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.red)
+        );
+      } else if(vendido == 'Não' && favorito == 'Não') {
+        this.marcadores.add(
+          new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
+        );
+      }
+    }
+
+    if(mostrarMapa) {
+      setState(() {
+        _mapa();
+      });
+      
+    }
+    
+  }
+
+
+
+//////////////////////////////
 }
+
+
+/////////////////////////////
+class CompositeSubscription {
+  Set<StreamSubscription> _subscriptions = new Set();
+
+  void cancel() {
+    for (var n in this._subscriptions) {
+      n.cancel();
+    }
+    this._subscriptions = new Set();
+  }
+
+  void add(StreamSubscription subscription) {
+    this._subscriptions.add(subscription);
+  }
+
+  void addAll(Iterable<StreamSubscription> subs) {
+    _subscriptions.addAll(subs);
+  }
+
+  bool remove(StreamSubscription subscription) {
+    return this._subscriptions.remove(subscription);
+  }
+
+  bool contains(StreamSubscription subscription) {
+    return this._subscriptions.contains(subscription);
+  }
+
+  List<StreamSubscription> toList() {
+    return this._subscriptions.toList();
+  }
+}
+//////////////////////////////
 
 class InputDropdown3 extends StatelessWidget {
   const InputDropdown3({
@@ -1011,11 +1655,12 @@ class _MyFormState extends State<MyForm> {
           ],
         ),
 
-
         new FlatButton(
           onPressed: () {
             Navigator.pop(context);
+            if(rolamento.length > 0) {
               widget.onSubmit([rolamento[_currentValue], tipoLista]);
+            }              
           },
           child: new Container(
             margin: new EdgeInsets.only(right: 10.0),

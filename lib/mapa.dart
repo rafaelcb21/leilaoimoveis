@@ -63,8 +63,8 @@ class MapaPageState extends State<MapaPage> {
   @override
   void initState() {
     super.initState();
+    
     for(var item in widget.imoveis) {
-      print(item);
       this.tipo = item['tipo'];
       this.situacao = item['situacao'];
       this.vlr_de_avaliacao = item['vlr_de_avaliacao'];
@@ -72,7 +72,7 @@ class MapaPageState extends State<MapaPage> {
       this.endereco = item['endereco'];
       this.bairro = item['bairro'];
       this.descricao = item['descricao'];
-      this.id = item['id'];
+      this.id = item['id_no_leilao'];
       this.leilao = item['leilao'];
       this.num_do_bem = item['num_do_bem'];
       this.tipo = item['tipo'];
@@ -82,7 +82,7 @@ class MapaPageState extends State<MapaPage> {
       this.vendido = item['vendido'];
       this.favoritoInit = item['favorito'];
 
-      var info =
+      String info =
         this.tipo + '|' +
         this.situacao + '|' +
         this.vlr_de_avaliacao.toString() + '|' +
@@ -100,15 +100,15 @@ class MapaPageState extends State<MapaPage> {
 
       if(this.favoritoInit == 'Sim') {
         this.marcadores.add(
-          new Marker(item['id'], info, item['latitude'], item['longitude'], color: new Color(0xFFF7941E))
+          new Marker(item['id_no_leilao'], info, item['latitude'], item['longitude'], color: new Color(0xFFF7941E))
         );
       } else if(this.vendido == 'Sim' && this.favoritoInit == 'Não') {
         this.marcadores.add(
-          new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.red)
+          new Marker(item['id_no_leilao'], info, item['latitude'], item['longitude'], color: Colors.red)
         );
       } else if(this.vendido == 'Não' && this.favoritoInit == 'Não') {
         this.marcadores.add(
-          new Marker(item['id'], info, item['latitude'], item['longitude'], color: Colors.blue)
+          new Marker(item['id_no_leilao'], info, item['latitude'], item['longitude'], color: Colors.blue)
         );
       }
     }
@@ -171,6 +171,79 @@ class MapaPageState extends State<MapaPage> {
     }
   }
 
+  void marker(data) {
+    imovelDB.getImoveis().then((data) {
+      this.marcadores = [];
+      String tipo = '';
+      String situacao = '';
+      String vlr_de_avaliacao = '0.0';
+      String vlr_de_venda = '0.0';
+      String endereco = '';
+      String bairro = '';
+      String descricao = '';
+      String id = '';
+      String leilao = '';
+      String num_do_bem = '';
+      String uuidRandom = '';
+      double latitude = 0.0;
+      double longitude = 0.0;
+      String caucao = '0.0';
+      String maisinfo = '';
+      String vendido = '';
+      String favorito = '';
+
+      for(var item2 in data) {
+        tipo = item2['tipo'];
+        situacao = item2['situacao'];
+        vlr_de_avaliacao = item2['vlr_de_avaliacao'];
+        vlr_de_venda = item2['vlr_de_venda'];
+        endereco = item2['endereco'];
+        bairro = item2['bairro'];
+        descricao = item2['descricao'];
+        id = item2['id'].toString();
+        leilao = item2['leilao'];
+        num_do_bem = item2['num_do_bem'];
+        uuidRandom = item2['uuid'];
+        latitude = item2['latitude'];
+        longitude = item2['longitude'];
+        caucao = item2['caucao'];
+        maisinfo = item2['maisinfo'];
+        vendido = item2['vendido'];
+        favorito = item2['favorito'];
+
+        var info2 =
+          tipo + '|' +
+          situacao + '|' +
+          vlr_de_avaliacao.toString() + '|' +
+          vlr_de_venda.toString() + '|' +
+          endereco + '|' +
+          bairro + '|' +
+          descricao + '|' +
+          id.toString() + '|' +
+          leilao + '|' +
+          num_do_bem + '|' +
+          uuidRandom + '|' +
+          caucao + '|' +
+          maisinfo + '|' +
+          vendido;
+
+        if(favorito == 'Sim') {
+          this.marcadores.add(
+            new Marker(item2['id'].toString(), info2, latitude, longitude, color: new Color(0xFFF7941E))
+          );
+        } else if(vendido == 'Sim' && favorito == 'Não') {
+          this.marcadores.add(
+            new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.red)
+          );
+        } else if(vendido == 'Não' && favorito == 'Não') {
+          this.marcadores.add(
+            new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
+          );
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color _kKeyUmbraOpacity = const Color(0x33000000); // alpha = 0.2
@@ -188,6 +261,13 @@ class MapaPageState extends State<MapaPage> {
           child: new Icon(Icons.arrow_back)
         ),
         actions: <Widget>[
+          new IconButton(
+            color: Colors.white,
+            icon: new Icon(Icons.home),
+            onPressed: () {
+              Navigator.pop(context);        
+            },
+          ),
           new IconButton(
             color: Colors.white,
             icon: new Icon(Icons.star),
@@ -287,90 +367,15 @@ class MapaPageState extends State<MapaPage> {
                     this.favorito = !this.favorito;
                     imovelDB.getFavorito(this.uuidRandom).then((data) {
                       if(data == true) {
-                        imovelDB.updateFavorito(this.uuidRandom, "Sim").then((result) {
-                          imovelDB.getImoveis().then((data) {
-                            this.marcadores = [];
-                            String tipo = '';
-                            String situacao = '';
-                            String vlr_de_avaliacao = '0.0';
-                            String vlr_de_venda = '0.0';
-                            String endereco = '';
-                            String bairro = '';
-                            String descricao = '';
-                            String id = '';
-                            String leilao = '';
-                            String num_do_bem = '';
-                            String uuidRandom = '';
-                            double latitude = 0.0;
-                            double longitude = 0.0;
-                            String caucao = '0.0';
-                            String maisinfo = '';
-                            String vendido = '';
-                            String favorito = '';
-
-                            for(var item2 in data) {
-                              tipo = item2['tipo'];
-                              situacao = item2['situacao'];
-                              vlr_de_avaliacao = item2['vlr_de_avaliacao'];
-                              vlr_de_venda = item2['vlr_de_venda'];
-                              endereco = item2['endereco'];
-                              bairro = item2['bairro'];
-                              descricao = item2['descricao'];
-                              id = item2['id'].toString();
-                              leilao = item2['leilao'];
-                              num_do_bem = item2['num_do_bem'];
-                              uuidRandom = item2['uuid'];
-                              latitude = item2['latitude'];
-                              longitude = item2['longitude'];
-                              caucao = item2['caucao'];
-                              maisinfo = item2['maisinfo'];
-                              vendido = item2['vendido'];
-                              favorito = item2['favorito'];
-
-                              var info2 =
-                                tipo + '|' +
-                                situacao + '|' +
-                                vlr_de_avaliacao.toString() + '|' +
-                                vlr_de_venda.toString() + '|' +
-                                endereco + '|' +
-                                bairro + '|' +
-                                descricao + '|' +
-                                id.toString() + '|' +
-                                leilao + '|' +
-                                num_do_bem + '|' +
-                                uuidRandom + '|' +
-                                caucao + '|' +
-                                maisinfo + '|' +
-                                vendido;
-
-                              if(favorito == 'Sim') {
-                                this.marcadores.add(
-                                  new Marker(item2['id'].toString(), info2, latitude, longitude, color: new Color(0xFFF7941E))
-                                );
-                              } else if(vendido == 'Sim' && favorito == 'Não') {
-                                this.marcadores.add(
-                                  new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.red)
-                                );
-                              } else if(vendido == 'Não' && favorito == 'Não') {
-                                this.marcadores.add(
-                                  new Marker(item2['id'].toString(), info2, latitude, longitude, color: Colors.blue)
-                                );
-                              }
-                            }                            
-                          });
-
-
+                        imovelDB.updateFavorito(this.uuidRandom, this.id, "Sim").then((result) {
+                          marker(result);
                         });
                       } else if(data == false) {
-                        imovelDB.updateFavorito(this.uuidRandom, "Não").then((result) {
+                        imovelDB.updateFavorito(this.uuidRandom, this.id, "Não").then((result) {
+                          marker(result);
                         });
                       }                      
                     });
-
-                    
-                      
-                    
-
                   });
                 },
                 color: new Color(0xFFF7941E)
@@ -702,6 +707,7 @@ class MapaPageState extends State<MapaPage> {
     );
   }
 
+////////////////////////////////////////////
   Future _mapa() async {
     //1. Show the map
     mapView.show(
@@ -771,7 +777,7 @@ class MapaPageState extends State<MapaPage> {
     });
 
     mapView.dismiss();
-      compositeSubscription.cancel();
+    compositeSubscription.cancel();
   }
 }
 

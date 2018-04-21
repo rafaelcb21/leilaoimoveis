@@ -53,8 +53,69 @@ class DatabaseClient {
         )
       """
     );
+
+    await db.execute(
+      """
+        CREATE TABLE favorito (
+          id INTEGER PRIMARY KEY,
+          favorito TEXT NOT NULL
+        )
+      """
+    );
     await db.rawInsert("INSERT INTO version (numero) VALUES (0)");
 
+  }
+}
+
+class Favorito {
+  Favorito();
+  Database db;
+
+  int id;
+  String favorito;
+
+  String favoritoTable = "favorito";
+
+  static final columns = ["id", "favorito"];
+
+  Map toMap() {
+    Map map = {"id": id, "favorito": favorito};
+    if (id != null) { map["id"] = id; }
+    return map;
+  }
+
+  static fromMap(Map map) {
+    Favorito favoritoTable = new Favorito();
+    favoritoTable.id = map["id"];
+    favoritoTable.favorito = map["favorito"];
+    return favoritoTable;
+  }
+
+  Future getFavorito() async {
+    Directory path = await getApplicationDocumentsDirectory();
+    String dbPath = join(path.path, "database.db");
+    Database db = await openDatabase(dbPath);
+    List results = await db.rawQuery("SELECT favorito FROM favorito");
+    await db.close();
+    return results[0]['favorito'];
+  }
+
+  //Future insertFavorito(String favorito) async {
+  //  Directory path = await getApplicationDocumentsDirectory();
+  //  String dbPath = join(path.path, "database.db");
+  //  Database db = await openDatabase(dbPath);
+  //  await db.rawInsert("INSERT INTO favorito (favorito) VALUES (?)", [favorito]);        
+  //  await db.close();
+  //  return true;
+  //}
+
+  Future deleteFavorito(String favorito) async {
+    Directory path = await getApplicationDocumentsDirectory();
+    String dbPath = join(path.path, "database.db");
+    Database db = await openDatabase(dbPath);
+    await db.rawDelete("DELETE FROM favorito WHERE favorito = ?", [favorito]);        
+    await db.close();
+    return true;
   }
 }
 
@@ -242,15 +303,37 @@ class Imovel {
     return results;
   }
 
-  Future updateFavorito(String uuid, String valor) async {
+  Future updateFavorito(String uuid, String id_no_leilao, String valor) async {
     bool favorito = false;
     Directory path = await getApplicationDocumentsDirectory();
     String dbPath = join(path.path, "database.db");
     Database db = await openDatabase(dbPath);
     await db.rawUpdate("UPDATE imovel SET favorito = ? WHERE uuid = ?", [valor, uuid]);
-    List results = await db.rawQuery("SELECT uuid, favorito FROM imovel WHERE uuid = ?", [uuid]);
+    if(valor == 'Sim') {
+      await db.rawInsert("INSERT INTO favorito (favorito) VALUES (?)", [id_no_leilao]);
+    } else {
+      await db.rawDelete("DELETE FROM favorito WHERE favorito = ?", [id_no_leilao]);
+    }
+    //List results = await db.rawQuery("SELECT uuid, favorito FROM imovel WHERE uuid = ?", [uuid]);
+    List results = await db.rawQuery("SELECT * FROM imovel");
     await db.close();
-    return true;
+    return results;
+  }
+
+  Future insertFavoritoNovamente() async {
+    bool favorito = false;
+    Directory path = await getApplicationDocumentsDirectory();
+    String dbPath = join(path.path, "database.db");
+    Database db = await openDatabase(dbPath);
+
+    List favoritos = await db.rawQuery('SELECT favorito FROM favorito');
+    for(var item in favoritos) {
+      String id_no_leilao = item['favorito'];
+      await db.rawUpdate("UPDATE imovel SET favorito = 'Sim' WHERE id_no_leilao = ?", [id_no_leilao]);
+    }
+    List results = await db.rawQuery("SELECT * FROM imovel");
+    await db.close();
+    return results;
   }
 
   Future insertImoveis(List imoveis) async {

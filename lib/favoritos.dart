@@ -21,7 +21,7 @@ class FavoritoPageState extends State<FavoritoPage> {
   var uuid = new Uuid();
   Color azul = new Color(0xFF1387B3);
   
-  MapView mapView = new MapView();
+  MapView mapView2 = new MapView();
   Localizacao localizacao = new Localizacao();
   double latitude = -15.794229;
   double longitude = -47.882166;
@@ -72,7 +72,7 @@ class FavoritoPageState extends State<FavoritoPage> {
         item['endereco'] + '|' +
         item['bairro'] + '|' +
         item['descricao'] + '|' +
-        item['id'].toString() + '|' +
+        item['id_no_leilao'] + '|' +
         item['leilao'] + '|' +
         item['num_do_bem'] + '|' +
         item['uuid'] + '|' +
@@ -90,7 +90,7 @@ class FavoritoPageState extends State<FavoritoPage> {
           endereco: item['endereco'],
           bairro: item['bairro'],
           descricao: item['descricao'],
-          id: item['id'].toString(),
+          id: item['id_no_leilao'],
           leilao: item['leilao'],
           num_do_bem: item['num_do_bem'],
           uuidRandom: item['uuid'],
@@ -100,7 +100,7 @@ class FavoritoPageState extends State<FavoritoPage> {
           maisinfo: item['maisinfo'],
           vendido: item['vendido'],
           onPressed: () {
-            imovelDB.updateFavorito(item['uuid'], "Não").then((data1) {
+            imovelDB.updateFavorito(item['uuid'], item['id_no_leilao'], "Não").then((data1) {
               imovelDB.getAllFavorito().then((data) {
                 setState(() {
                   this.dadosFavoritos = data;
@@ -175,11 +175,11 @@ class FavoritoPageState extends State<FavoritoPage> {
 
       if(item['vendido'] == 'Não') {
         this.marcadores.add(
-          new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: new Color(0xFFF7941E))
+          new Marker(item['id_no_leilao'], info, item['latitude'], item['longitude'], color: new Color(0xFFF7941E))
         );
       } else {
         this.marcadores.add(
-          new Marker(item['id'].toString(), info, item['latitude'], item['longitude'], color: Colors.red)
+          new Marker(item['id_no_leilao'], info, item['latitude'], item['longitude'], color: Colors.red)
         );
       }      
     }
@@ -194,7 +194,7 @@ class FavoritoPageState extends State<FavoritoPage> {
       new InkWell(
         onTap: () {
           //this.favorito = false;
-          _mapa();
+          _mapa2();
         },
         child: new Container(
           margin: new EdgeInsets.only(top:8.0, bottom: 8.0, left: 8.0, right: 8.0),
@@ -246,6 +246,23 @@ class FavoritoPageState extends State<FavoritoPage> {
       appBar: new AppBar(
         title: new Text('Favoritos'),
         backgroundColor: this.azul,
+        leading: new GestureDetector(
+          onTap: () {
+            imovelDB.getImoveis().then((imoveisBanco) {
+              Navigator.pop(context, imoveisBanco);
+            });
+          },
+          child: new Icon(Icons.arrow_back)
+        ),
+        actions: <Widget>[
+          new IconButton(
+            color: Colors.white,
+            icon: new Icon(Icons.map),
+            onPressed: () {
+              _mapa2();
+            },
+          )
+        ],
       ),
       
       body: new ListView(
@@ -255,9 +272,9 @@ class FavoritoPageState extends State<FavoritoPage> {
     );
   }
 
-  Future _mapa() async {
+  Future _mapa2() async {
     //1. Show the map
-    mapView.show(
+    mapView2.show(
       new MapOptions(
         showUserLocation: true,
         title: "Imóveis de leilão",
@@ -265,21 +282,21 @@ class FavoritoPageState extends State<FavoritoPage> {
           toolbarActions: <ToolbarAction>[new ToolbarAction("Fechar", 1)]
     );
 
-    var sub = mapView.onMapReady.listen((_) {
-      mapView.setMarkers(this.marcadores);
-      mapView.zoomToFit(padding: 100);
+    var sub = mapView2.onMapReady.listen((_) {
+      mapView2.setMarkers(this.marcadores);
+      mapView2.zoomToFit(padding: 100);
     });
     compositeSubscription.add(sub);
 
-    sub = mapView.onTouchAnnotation.listen((annotation) {
+    sub = mapView2.onTouchAnnotation.listen((annotation) {
       _handleDismiss(annotation);
       
     });
     compositeSubscription.add(sub);
 
-    sub = mapView.onToolbarAction.listen((id) {
+    sub = mapView2.onToolbarAction.listen((id) {
       if (id == 1) {
-        mapView.dismiss();
+        mapView2.dismiss();
       }
     });
     compositeSubscription.add(sub);
@@ -287,7 +304,7 @@ class FavoritoPageState extends State<FavoritoPage> {
   }
 
   _handleDismiss(annotation) {
-    mapView.dismiss();
+    mapView2.dismiss();
     compositeSubscription.cancel();
   }
 }
