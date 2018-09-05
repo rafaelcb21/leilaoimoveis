@@ -18,7 +18,7 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="leilaoimoveis"
         android:icon="@mipmap/ic_launcher">
-        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q"/>
+        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="xxxxxx"/>
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
         <activity
             android:name=".MainActivity"

@@ -29,7 +29,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 
 //final analytics = new FirebaseAnalytics();
-var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
+var apiKey = "xxxxxx";
 
 void main() {
   MapView.setApiKey(apiKey);

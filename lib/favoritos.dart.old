@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import 'dbsqlite.dart';
 
-var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
+var apiKey = "xxxxxx";
 
 class FavoritoPage extends StatefulWidget {
   FavoritoPage(this.favoritos);

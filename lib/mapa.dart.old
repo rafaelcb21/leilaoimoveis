@@ -11,7 +11,7 @@ import 'dart:io';
 import 'dbsqlite.dart';
 import 'favoritos.dart';
 
-var apiKey = "AIzaSyBfQkQqqwFl0BcPBC1ySZ4i_J_-ANZI_0Q";
+var apiKey = "xxxxxx";
 
 class MapaPage extends StatefulWidget {
   MapaPage(this.imoveis);
